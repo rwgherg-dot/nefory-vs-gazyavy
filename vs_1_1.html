@@ -1,0 +1,3002 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>НЕФОРЫ vs ГАЗЯВЫ — Онлайн Арена 1 на 1</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Russo One & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Russo+One&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --nefor-primary: #a855f7;
+      --nefor-secondary: #ec4899;
+      --gazyava-primary: #f97316;
+      --gazyava-secondary: #06b6d4;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #08080e;
+      color: #f8fafc;
+      overflow-x: hidden;
+      min-height: 100vh;
+      margin: 0;
+      background-image:
+        radial-gradient(circle at 15% 20%, rgba(168, 85, 247, 0.14) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(249, 115, 22, 0.14) 0%, transparent 45%),
+        linear-gradient(180deg, #08080e 0%, #0d0d18 100%);
+    }
+
+    .font-arcade {
+      font-family: 'Russo One', sans-serif;
+      letter-spacing: 0.03em;
+    }
+
+    .glass-panel {
+      background: rgba(17, 17, 29, 0.85);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+    }
+
+    .nefor-glow {
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.35), inset 0 0 15px rgba(236, 72, 153, 0.2);
+      border-color: rgba(168, 85, 247, 0.5);
+    }
+
+    .gazyava-glow {
+      box-shadow: 0 0 25px rgba(249, 115, 22, 0.35), inset 0 0 15px rgba(6, 182, 212, 0.2);
+      border-color: rgba(249, 115, 22, 0.5);
+    }
+
+    .btn-arcade {
+      transition: all 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .btn-arcade:hover:not(:disabled) {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+    .btn-arcade:active:not(:disabled) {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    @keyframes pulseNeon {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.82; transform: scale(1.03); }
+    }
+    .animate-pulse-neon {
+      animation: pulseNeon 2.2s infinite ease-in-out;
+    }
+
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-enter {
+      animation: slideUpFade 0.28s ease-out forwards;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 15, 25, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(168, 85, 247, 0.45);
+      border-radius: 9999px;
+    }
+
+    /* Canvas Container */
+    #arenaWrapper {
+      touch-action: none;
+    }
+    #gameCanvas {
+      display: block;
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.85), 0 0 2px rgba(255, 255, 255, 0.15);
+      touch-action: none;
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+  <!-- ==================== TOAST NOTIFICATION CONTAINER ==================== -->
+  <div id="toastContainer" class="fixed top-4 right-4 z-50 flex flex-col gap-2 pointer-events-none max-w-xs w-full px-2"></div>
+
+  <!-- ==================== TOP NAVIGATION / PROFILE BAR ==================== -->
+  <header id="topHeader" class="w-full max-w-6xl mx-auto px-4 pt-3 pb-2 flex flex-wrap items-center justify-between gap-3 z-20">
+    <!-- Logo -->
+    <div class="flex items-center gap-3 cursor-pointer" onclick="UI.goHome()">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 flex items-center justify-center shadow-lg">
+        <span class="font-arcade text-lg text-white">⚡</span>
+      </div>
+      <div>
+        <h1 class="font-arcade text-lg sm:text-xl leading-none tracking-wide">
+          <span class="text-purple-400">НЕФОРЫ</span>
+          <span class="text-slate-400 text-sm mx-1">VS</span>
+          <span class="text-orange-400">ГАЗЯВЫ</span>
+        </h1>
+        <p class="text-[11px] text-slate-400 mt-0.5">Уличная онлайн-арена 1 на 1</p>
+      </div>
+    </div>
+
+    <!-- Player Profile Pill + Sound Toggle -->
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- Sound Toggle -->
+      <button id="soundToggleBtn" onclick="SoundEngine.toggleMute()" title="Звук"
+        class="p-2.5 rounded-xl glass-panel hover:bg-white/10 text-slate-200 transition flex items-center justify-center">
+        <span id="soundIcon" class="text-base">🔊</span>
+      </button>
+
+      <!-- Profile Summary Card -->
+      <div id="profilePill" onclick="UI.openNicknameModal(true)"
+        class="glass-panel rounded-xl px-3 py-1.5 flex items-center gap-3 cursor-pointer hover:border-purple-400/50 transition">
+        <div class="text-right">
+          <div class="flex items-center justify-end gap-1.5">
+            <span id="headerNick" class="font-bold text-sm text-white">Загрузка...</span>
+            <span class="text-[10px] text-slate-400">✏️</span>
+          </div>
+          <div class="flex items-center justify-end gap-2 text-[11px]">
+            <span id="headerRank" class="font-semibold text-purple-300">Новичок</span>
+            <span class="text-slate-500">•</span>
+            <span id="headerMmr" class="font-bold text-amber-400">1000 MMR</span>
+          </div>
+        </div>
+        <div class="hidden sm:flex flex-col items-end border-l border-white/10 pl-2.5 text-[10px] text-slate-400">
+          <span>W: <b id="headerWins" class="text-emerald-400">0</b> / L: <b id="headerLosses" class="text-rose-400">0</b></span>
+          <span id="headerUid" class="font-mono text-[9px] text-slate-500 max-w-[110px] truncate" title="Ваш полный ID игрока">ID: ...</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN MENU SCREEN ==================== -->
+  <main id="mainMenuScreen" class="flex-1 w-full max-w-6xl mx-auto px-4 py-3 flex flex-col justify-between gap-5">
+    
+    <!-- Hero Banner & Modes -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+      
+      <!-- Left Column: Game Modes (7 cols) -->
+      <div class="lg:col-span-7 glass-panel rounded-2xl p-5 sm:p-6 flex flex-col justify-between gap-4 animate-enter">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-slate-300 mb-3">
+            <span id="connectionDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+            <span id="connectionText">Подключение к арене...</span>
+          </div>
+          <h2 class="font-arcade text-2xl sm:text-3xl text-white leading-tight">
+            ВЫБЕРИ СТОРОНУ И ДОКАЖИ, КТО ГЛАВНЫЙ НА РАЙОНЕ
+          </h2>
+          <p class="text-sm text-slate-400 mt-1.5">
+            Дуэли 1 на 1 до 2 побед в раундах (Best of 3). Собирай бонусы на арене, уклоняйся за укрытиями и заряжай ульту!
+          </p>
+        </div>
+
+        <!-- Primary Action Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-1">
+          <!-- 1. Ranked 1v1 -->
+          <button onclick="Matchmaking.startRanked()"
+            class="btn-arcade sm:col-span-2 p-4 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white shadow-lg flex items-center justify-between text-left group">
+            <div>
+              <div class="font-arcade text-lg sm:text-xl flex items-center gap-2">
+                <span>⚡ РЕЙТИНГОВЫЙ МАТЧ 1 НА 1</span>
+              </div>
+              <div class="text-xs text-white/85 mt-0.5">
+                Автопоиск соперника • Победа <b class="text-emerald-200">+25 MMR</b> / Поражение <b class="text-rose-200">-20 MMR</b>
+              </div>
+            </div>
+            <span class="text-2xl group-hover:translate-x-1 transition-transform">➔</span>
+          </button>
+
+          <!-- 2. Create Room for Friend -->
+          <button onclick="UI.openCreateFriendModal()"
+            class="btn-arcade p-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-purple-500/40 text-left flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xl">🔑</span>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-semibold">С ДРУГОМ</span>
+            </div>
+            <div class="mt-3">
+              <div class="font-arcade text-base text-white">СОЗДАТЬ КОМНАТУ</div>
+              <div class="text-xs text-slate-400 mt-0.5">Выбери фракцию и отправь 5-значный код другу</div>
+            </div>
+          </button>
+
+          <!-- 3. Join by Friend Code -->
+          <button onclick="UI.openJoinFriendModal()"
+            class="btn-arcade p-4 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-orange-500/40 text-left flex flex-col justify-between">
+            <div class="flex items-center justify-between">
+              <span class="text-xl">🎮</span>
+              <span class="text-[11px] px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-semibold">ПО КОДУ</span>
+            </div>
+            <div class="mt-3">
+              <div class="font-arcade text-base text-white">ВОЙТИ ПО КОДУ ДРУГА</div>
+              <div class="text-xs text-slate-400 mt-0.5">Введи 5 символов и зайди за противоположную сторону</div>
+            </div>
+          </button>
+
+          <!-- 4. Bot Warmup -->
+          <button onclick="UI.openBotModal()"
+            class="btn-arcade p-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-left flex items-center gap-3">
+            <span class="text-2xl">🤖</span>
+            <div>
+              <div class="font-arcade text-sm text-slate-100">РАЗМИНКА С БОТОМ</div>
+              <div class="text-[11px] text-slate-400">Тренировка способностей 1 на 1</div>
+            </div>
+          </button>
+
+          <!-- 5. Leaderboard -->
+          <button onclick="UI.openLeaderboardModal()"
+            class="btn-arcade p-3.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-left flex items-center gap-3">
+            <span class="text-2xl">🏆</span>
+            <div>
+              <div class="font-arcade text-sm text-amber-300">ТАБЛИЦА ЛИДЕРОВ</div>
+              <div class="text-[11px] text-amber-200/70">Топ-10 лучших бойцов арены</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right Column: Asymmetric Factions Showcase (5 cols) -->
+      <div class="lg:col-span-5 flex flex-col gap-4 animate-enter">
+        <!-- NEFORY CARD -->
+        <div class="glass-panel nefor-glow rounded-2xl p-4 sm:p-5 flex-1 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-purple-600/20 blur-2xl pointer-events-none"></div>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="font-arcade text-xl text-purple-400 tracking-wider">🎸 НЕФОРЫ</span>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-200 border border-purple-400/30">Кибер-гранж</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1">Высокая мобильность, теневые уклонения и сокрушительный басовый слэм вблизи.</p>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-3 text-[11px]">
+            <div class="bg-black/40 rounded-xl p-2 border border-purple-500/20">
+              <div class="text-purple-300 font-bold">ЛКМ / Пробел</div>
+              <div class="text-white font-semibold mt-0.5">Звуковой рифф</div>
+              <div class="text-slate-400 text-[10px]">Быстрый неоновый заряд</div>
+            </div>
+            <div class="bg-black/40 rounded-xl p-2 border border-purple-500/20">
+              <div class="text-pink-300 font-bold">E / Shift</div>
+              <div class="text-white font-semibold mt-0.5">Теневой рывок</div>
+              <div class="text-slate-400 text-[10px]">Рывок + неуязвимость</div>
+            </div>
+            <div class="bg-black/40 rounded-xl p-2 border border-purple-500/20">
+              <div class="text-amber-300 font-bold">Q (Ульта)</div>
+              <div class="text-white font-semibold mt-0.5">Слэм-волна</div>
+              <div class="text-slate-400 text-[10px]">Урон по области + отброс</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- GAZYAVY CARD -->
+        <div class="glass-panel gazyava-glow rounded-2xl p-4 sm:p-5 flex-1 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute -right-6 -top-6 w-28 h-28 rounded-full bg-orange-500/20 blur-2xl pointer-events-none"></div>
+          <div>
+            <div class="flex items-center justify-between">
+              <span class="font-arcade text-xl text-orange-400 tracking-wider">🥤 ГАЗЯВЫ</span>
+              <span class="text-[11px] px-2.5 py-0.5 rounded-full bg-orange-500/20 text-orange-200 border border-orange-400/30">Уличный стиль</span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1">Взрывной урон по площади, энергетический щит и замедляющий залп ментоса.</p>
+          </div>
+          <div class="grid grid-cols-3 gap-2 mt-3 text-[11px]">
+            <div class="bg-black/40 rounded-xl p-2 border border-orange-500/20">
+              <div class="text-orange-300 font-bold">ЛКМ / Пробел</div>
+              <div class="text-white font-semibold mt-0.5">Взболтанная банка</div>
+              <div class="text-slate-400 text-[10px]">Взрывается при попадании</div>
+            </div>
+            <div class="bg-black/40 rounded-xl p-2 border border-cyan-500/20">
+              <div class="text-cyan-300 font-bold">E / Shift</div>
+              <div class="text-white font-semibold mt-0.5">Турбо-газировка</div>
+              <div class="text-slate-400 text-[10px]">Скорость + щит 40 HP</div>
+            </div>
+            <div class="bg-black/40 rounded-xl p-2 border border-orange-500/20">
+              <div class="text-amber-300 font-bold">Q (Ульта)</div>
+              <div class="text-white font-semibold mt-0.5">Взрыв ментоса</div>
+              <div class="text-slate-400 text-[10px]">5 снарядов + замедление</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rank Ladder Legend Footer -->
+    <div class="glass-panel rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="font-semibold text-slate-200">Звания арены:</span>
+        <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300">Новичок (&lt;1050)</span>
+        <span class="px-2 py-0.5 rounded bg-emerald-950/70 text-emerald-300 border border-emerald-500/20">Местный (1050+)</span>
+        <span class="px-2 py-0.5 rounded bg-cyan-950/70 text-cyan-300 border border-cyan-500/20">Авторитет (1200+)</span>
+        <span class="px-2 py-0.5 rounded bg-purple-950/70 text-purple-300 border border-purple-500/20">Легенда района (1400+)</span>
+        <span class="px-2 py-0.5 rounded bg-amber-950/70 text-amber-300 border border-amber-500/30">👑 Король арены (1600+)</span>
+      </div>
+      <div class="text-[11px] text-slate-500">Управление: WASD/Стрелки + Мышь/Пробел, E, Q (или сенсор на телефоне)</div>
+    </div>
+  </main>
+
+  <!-- ==================== GAME ARENA SCREEN ==================== -->
+  <section id="gameScreen" class="hidden flex-1 w-full max-w-6xl mx-auto px-2 sm:px-4 pb-3 flex flex-col items-center justify-between gap-2">
+    
+    <!-- Top Match HUD -->
+    <div class="w-full glass-panel rounded-2xl px-3 py-2 sm:px-5 sm:py-2.5 flex items-center justify-between gap-2">
+      <!-- Left Player (Host / P1) -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+          <span id="hudP1Badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-purple-600 text-white">НЕФОРЫ</span>
+          <span id="hudP1Nick" class="font-bold text-xs sm:text-sm text-white truncate">Игрок 1</span>
+          <span id="hudP1Mmr" class="hidden sm:inline text-[11px] text-slate-400">(1000)</span>
+        </div>
+        <!-- HP & Shield Bar -->
+        <div class="w-full h-3.5 bg-slate-900 rounded-full overflow-hidden mt-1.5 border border-white/10 relative">
+          <div id="hudP1HpBar" class="h-full bg-gradient-to-r from-purple-600 to-pink-500 transition-all duration-100" style="width: 100%"></div>
+          <div id="hudP1ShieldBar" class="h-full bg-cyan-400/80 absolute top-0 left-0 transition-all duration-100" style="width: 0%"></div>
+          <span id="hudP1HpText" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow">100 / 100</span>
+        </div>
+      </div>
+
+      <!-- Center Score & Timer -->
+      <div class="flex flex-col items-center px-2 sm:px-4 shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <span id="hudP1Score" class="font-arcade text-xl sm:text-2xl text-purple-400">0</span>
+          <div class="px-2.5 py-0.5 rounded-lg bg-black/60 border border-white/15 font-arcade text-sm sm:text-base text-amber-300" id="hudTimer">60</div>
+          <span id="hudP2Score" class="font-arcade text-xl sm:text-2xl text-orange-400">0</span>
+        </div>
+        <div id="hudRoundLabel" class="text-[10px] text-slate-400 uppercase tracking-wider mt-0.5">Раунд 1 • До 2 побед</div>
+      </div>
+
+      <!-- Right Player (Guest / P2) -->
+      <div class="flex-1 min-w-0 text-right">
+        <div class="flex items-center justify-end gap-2">
+          <span id="hudP2Mmr" class="hidden sm:inline text-[11px] text-slate-400">(1000)</span>
+          <span id="hudP2Nick" class="font-bold text-xs sm:text-sm text-white truncate">Соперник</span>
+          <span id="hudP2Badge" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-orange-600 text-white">ГАЗЯВЫ</span>
+        </div>
+        <!-- HP & Shield Bar -->
+        <div class="w-full h-3.5 bg-slate-900 rounded-full overflow-hidden mt-1.5 border border-white/10 relative">
+          <div id="hudP2HpBar" class="h-full bg-gradient-to-l from-orange-500 to-amber-400 ml-auto transition-all duration-100" style="width: 100%"></div>
+          <div id="hudP2ShieldBar" class="h-full bg-cyan-400/80 absolute top-0 right-0 transition-all duration-100" style="width: 0%"></div>
+          <span id="hudP2HpText" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow">100 / 100</span>
+        </div>
+      </div>
+
+      <!-- Exit Button -->
+      <button onclick="GameEngine.confirmLeave()" title="Покинуть бой"
+        class="ml-1 p-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 text-xs font-bold transition">
+        ✕
+      </button>
+    </div>
+
+    <!-- Canvas Container -->
+    <div id="arenaWrapper" class="relative w-full flex-1 flex items-center justify-center overflow-hidden">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Round Banner Overlay -->
+      <div id="roundBanner" class="hidden absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+        <div class="glass-panel px-8 py-5 rounded-2xl text-center border-2 border-white/20 animate-enter">
+          <div id="roundBannerSub" class="text-xs uppercase tracking-widest text-amber-300 font-bold">РАУНД 1</div>
+          <div id="roundBannerTitle" class="font-arcade text-2xl sm:text-4xl text-white mt-1">В БОЙ!</div>
+        </div>
+      </div>
+
+      <!-- Mobile Touch Controls Overlay (Shown on touch devices or toggled) -->
+      <div id="touchControls" class="hidden absolute inset-0 pointer-events-none z-10">
+        <!-- Left Virtual Joystick Zone -->
+        <div id="joystickZone" class="absolute bottom-3 left-3 w-36 h-36 pointer-events-auto flex items-center justify-center">
+          <div id="joystickBase" class="w-28 h-28 rounded-full bg-white/10 border-2 border-white/20 backdrop-blur-sm relative flex items-center justify-center">
+            <div id="joystickKnob" class="w-12 h-12 rounded-full bg-white/40 border border-white/60 shadow-lg transform translate-x-0 translate-y-0"></div>
+          </div>
+        </div>
+
+        <!-- Right Action Buttons -->
+        <div class="absolute bottom-4 right-4 pointer-events-auto flex items-end gap-3">
+          <!-- Skill 1 Button -->
+          <button id="touchSkillBtn"
+            class="w-14 h-14 rounded-full bg-cyan-600/80 active:scale-90 border-2 border-cyan-300/60 shadow-lg flex flex-col items-center justify-center text-white relative overflow-hidden">
+            <span class="text-base leading-none">⚡</span>
+            <span id="touchSkillCd" class="text-[10px] font-bold mt-0.5">E</span>
+          </button>
+
+          <!-- Ultimate Button -->
+          <button id="touchUltBtn"
+            class="w-16 h-16 rounded-full bg-amber-600/80 active:scale-90 border-2 border-amber-300/70 shadow-lg flex flex-col items-center justify-center text-white relative overflow-hidden mb-3">
+            <span class="text-lg leading-none">💥</span>
+            <span id="touchUltPct" class="text-[10px] font-bold mt-0.5">0%</span>
+          </button>
+
+          <!-- Primary Attack Button -->
+          <button id="touchAttackBtn"
+            class="w-20 h-20 rounded-full bg-gradient-to-br from-purple-600 to-orange-500 active:scale-90 border-2 border-white/60 shadow-xl flex flex-col items-center justify-center text-white">
+            <span class="text-2xl leading-none">🔥</span>
+            <span class="text-[10px] font-arcade mt-0.5">АТАКА</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Ability & Controls Status Bar -->
+    <div class="w-full glass-panel rounded-2xl px-4 py-2 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="flex items-center gap-3 sm:gap-5">
+        <!-- Basic Attack Indicator -->
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-1 rounded bg-white/10 font-mono text-[11px] text-slate-200">ЛКМ / Пробел</span>
+          <span id="barAttackName" class="font-semibold text-slate-200">Атака</span>
+        </div>
+        <!-- Skill 1 Cooldown Indicator -->
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-1 rounded bg-cyan-500/20 border border-cyan-400/30 font-mono text-[11px] text-cyan-200">E / Shift</span>
+          <div>
+            <div id="barSkillName" class="font-semibold text-cyan-300">Навык</div>
+            <div id="barSkillStatus" class="text-[10px] text-emerald-400 font-bold">ГОТОВО</div>
+          </div>
+        </div>
+        <!-- Ultimate Charge Indicator -->
+        <div class="flex items-center gap-2">
+          <span class="px-2 py-1 rounded bg-amber-500/20 border border-amber-400/30 font-mono text-[11px] text-amber-200">Q</span>
+          <div>
+            <div id="barUltName" class="font-semibold text-amber-300">Ульта</div>
+            <div class="w-24 h-2 bg-slate-800 rounded-full overflow-hidden mt-0.5">
+              <div id="barUltFill" class="h-full bg-gradient-to-r from-amber-500 to-yellow-300 transition-all duration-150" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="UI.toggleTouchControls()" class="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[11px] text-slate-300 border border-white/10">
+        📱 Сенсорные кнопки
+      </button>
+    </div>
+  </section>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. Nickname Setup / Edit Modal -->
+  <div id="nicknameModal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full p-6 animate-enter border border-purple-500/30">
+      <h3 class="font-arcade text-2xl text-white">ТВОЙ ПОЗЫВНОЙ НА АРЕНЕ</h3>
+      <p class="text-xs text-slate-400 mt-1">Никнейм сохраняется в твоём профиле и отображается в таблице лидеров.</p>
+      <div class="mt-4">
+        <label class="block text-xs font-semibold text-slate-300 mb-1.5">Введи никнейм (от 2 до 16 символов)</label>
+        <input id="nicknameInput" type="text" maxlength="16" placeholder="Например: КиберПанк_77"
+          class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-white/15 text-white font-semibold focus:outline-none focus:border-purple-400" />
+      </div>
+      <div class="flex items-center justify-end gap-2 mt-5">
+        <button id="cancelNickBtn" onclick="UI.closeModal('nicknameModal')"
+          class="hidden px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-sm text-slate-300">Отмена</button>
+        <button onclick="FirebaseService.saveNickname()"
+          class="btn-arcade px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-orange-500 font-arcade text-sm text-white shadow-lg">
+          СОХРАНИТЬ ПРОФИЛЬ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Create Friend Room Modal -->
+  <div id="createFriendModal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full p-6 animate-enter">
+      <div class="flex items-center justify-between">
+        <h3 class="font-arcade text-xl text-white">КОМНАТА ДЛЯ ДРУГА</h3>
+        <button onclick="UI.closeModal('createFriendModal')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Выбери свою сторону. Друг автоматически зайдёт за противоположную фракцию.</p>
+
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <button id="pickNeforyBtn" onclick="UI.selectFaction('nefory')"
+          class="p-4 rounded-xl border-2 border-purple-500 bg-purple-500/15 text-left transition">
+          <div class="font-arcade text-lg text-purple-300">🎸 НЕФОРЫ</div>
+          <div class="text-[11px] text-slate-300 mt-1">Теневой рывок + Слэм-волна</div>
+        </button>
+        <button id="pickGazyavyBtn" onclick="UI.selectFaction('gazyavy')"
+          class="p-4 rounded-xl border-2 border-white/10 bg-slate-900/60 text-left transition">
+          <div class="font-arcade text-lg text-orange-300">🥤 ГАЗЯВЫ</div>
+          <div class="text-[11px] text-slate-300 mt-1">Турбо-щит + Взрыв ментоса</div>
+        </button>
+      </div>
+
+      <button onclick="Matchmaking.createFriendRoom()"
+        class="btn-arcade w-full mt-5 py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 font-arcade text-base text-white shadow-lg">
+        СОЗДАТЬ КОД КОМНАТЫ
+      </button>
+    </div>
+  </div>
+
+  <!-- 3. Join Friend Room Modal -->
+  <div id="joinFriendModal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full p-6 animate-enter">
+      <div class="flex items-center justify-between">
+        <h3 class="font-arcade text-xl text-white">ВОЙТИ ПО КОДУ ДРУГА</h3>
+        <button onclick="UI.closeModal('joinFriendModal')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Введи 5-значный код комнаты, который создал твой друг.</p>
+
+      <div class="mt-4">
+        <input id="roomCodeInput" type="text" maxlength="5" placeholder="XXXXX"
+          class="w-full px-4 py-3.5 rounded-xl bg-slate-900 border border-orange-500/40 text-center font-arcade text-2xl tracking-[0.35em] text-orange-300 uppercase focus:outline-none focus:border-orange-400" />
+      </div>
+
+      <button onclick="Matchmaking.joinFriendRoom()"
+        class="btn-arcade w-full mt-5 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 font-arcade text-base text-white shadow-lg">
+        ПОДКЛЮЧИТЬСЯ К БОЮ
+      </button>
+    </div>
+  </div>
+
+  <!-- 4. Bot Warmup Modal -->
+  <div id="botModal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full p-6 animate-enter">
+      <div class="flex items-center justify-between">
+        <h3 class="font-arcade text-xl text-white">РАЗМИНКА С БОТОМ</h3>
+        <button onclick="UI.closeModal('botModal')" class="text-slate-400 hover:text-white text-lg">✕</button>
+      </div>
+      <p class="text-xs text-slate-400 mt-1">Выбери фракцию для тренировочного поединка 1 на 1 против ИИ.</p>
+
+      <div class="grid grid-cols-2 gap-3 mt-4">
+        <button id="botNeforyBtn" onclick="UI.selectBotFaction('nefory')"
+          class="p-4 rounded-xl border-2 border-purple-500 bg-purple-500/15 text-left transition">
+          <div class="font-arcade text-lg text-purple-300">🎸 НЕФОРЫ</div>
+          <div class="text-[11px] text-slate-300 mt-1">Против бота-Газявы</div>
+        </button>
+        <button id="botGazyavyBtn" onclick="UI.selectBotFaction('gazyavy')"
+          class="p-4 rounded-xl border-2 border-white/10 bg-slate-900/60 text-left transition">
+          <div class="font-arcade text-lg text-orange-300">🥤 ГАЗЯВЫ</div>
+          <div class="text-[11px] text-slate-300 mt-1">Против бота-Нефора</div>
+        </button>
+      </div>
+
+      <button onclick="Matchmaking.startBotMatch()"
+        class="btn-arcade w-full mt-5 py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 font-arcade text-base text-white shadow-lg">
+        НАЧАТЬ РАЗМИНКУ
+      </button>
+    </div>
+  </div>
+
+  <!-- 5. Waiting Room / Matchmaking Lobby Modal -->
+  <div id="waitingModal" class="hidden fixed inset-0 z-40 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-lg w-full p-6 animate-enter text-center">
+      <div id="waitingBadge" class="inline-block px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/30 text-xs font-bold text-purple-300">
+        КОМНАТА ОЖИДАНИЯ
+      </div>
+      <h3 id="waitingTitle" class="font-arcade text-2xl text-white mt-2">ОЖИДАЕМ СОПЕРНИКА...</h3>
+      <p id="waitingSubtitle" class="text-xs text-slate-400 mt-1">Отправь этот код другу, чтобы он зашёл за противоположную сторону</p>
+
+      <!-- Room Code Box (Shown for friend rooms) -->
+      <div id="roomCodeBox" class="mt-4 p-4 rounded-2xl bg-slate-900/90 border border-white/15 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="text-left">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400">Код комнаты</div>
+          <div id="displayRoomCode" class="font-arcade text-3xl tracking-[0.25em] text-amber-400">-----</div>
+        </div>
+        <button onclick="UI.copyRoomCode()"
+          class="btn-arcade px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white flex items-center gap-2">
+          <span>📋</span>
+          <span>Скопировать код</span>
+        </button>
+      </div>
+
+      <!-- Versus Preview Cards -->
+      <div class="grid grid-cols-11 items-center gap-2 mt-5">
+        <div class="col-span-5 p-3 rounded-xl bg-purple-950/40 border border-purple-500/30">
+          <div id="lobbyHostFaction" class="text-[11px] font-bold text-purple-300">🎸 НЕФОРЫ</div>
+          <div id="lobbyHostNick" class="font-bold text-sm text-white truncate mt-1">Вы</div>
+          <div id="lobbyHostMmr" class="text-[11px] text-slate-400">1000 MMR</div>
+        </div>
+        <div class="col-span-1 font-arcade text-lg text-slate-500">VS</div>
+        <div class="col-span-5 p-3 rounded-xl bg-orange-950/40 border border-orange-500/30">
+          <div id="lobbyGuestFaction" class="text-[11px] font-bold text-orange-300">🥤 ГАЗЯВЫ</div>
+          <div id="lobbyGuestNick" class="font-bold text-sm text-slate-400 truncate mt-1 animate-pulse">Поиск...</div>
+          <div id="lobbyGuestMmr" class="text-[11px] text-slate-500">---</div>
+        </div>
+      </div>
+
+      <button onclick="Matchmaking.cancelRoom()"
+        class="mt-6 px-6 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-bold text-rose-300">
+        Отменить и выйти в меню
+      </button>
+    </div>
+  </div>
+
+  <!-- 6. Leaderboard Modal (Top 10) -->
+  <div id="leaderboardModal" class="hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-xl w-full p-6 animate-enter">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-arcade text-2xl text-amber-300">🏆 ТАБЛИЦА ЛИДЕРОВ</h3>
+          <p class="text-xs text-slate-400">Топ-10 лучших игроков по рейтингу MMR</p>
+        </div>
+        <button onclick="UI.closeModal('leaderboardModal')" class="text-slate-400 hover:text-white text-xl">✕</button>
+      </div>
+
+      <div id="leaderboardList" class="max-h-80 overflow-y-auto space-y-2 pr-1">
+        <div class="text-center py-8 text-slate-400 text-sm">Загрузка рейтинга...</div>
+      </div>
+
+      <div class="mt-5 flex justify-end">
+        <button onclick="UI.closeModal('leaderboardModal')"
+          class="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white">
+          Закрыть
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Match End Modal -->
+  <div id="matchEndModal" class="hidden fixed inset-0 z-40 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-panel rounded-2xl max-w-md w-full p-6 animate-enter text-center border-2 border-white/15">
+      <div id="matchEndEmoji" class="text-5xl mb-2">🏆</div>
+      <h3 id="matchEndTitle" class="font-arcade text-3xl text-white">ПОБЕДА!</h3>
+      <p id="matchEndSub" class="text-sm text-slate-300 mt-1">Счёт по раундам: 2 : 0</p>
+
+      <div id="matchEndMmrBox" class="mt-4 p-3.5 rounded-xl bg-white/5 border border-white/10">
+        <div class="text-xs text-slate-400">Изменение рейтинга</div>
+        <div id="matchEndMmrDelta" class="font-arcade text-2xl text-emerald-400 mt-0.5">+25 MMR</div>
+        <div id="matchEndNewMmr" class="text-xs text-slate-300 mt-0.5">Текущий рейтинг: 1025 MMR (Новичок)</div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5 mt-6">
+        <button onclick="UI.returnToMenuFromMatch()"
+          class="btn-arcade flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-orange-500 font-arcade text-sm text-white shadow-lg">
+          В ГЛАВНОЕ МЕНЮ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT: SOUND, FIREBASE, UI, GAME ENGINE ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+      onSnapshot, collection, getDocs
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* =========================================================================
+       1. WEB AUDIO API SYNTHESIZER (Zero external URLs, procedural arcade SFX)
+       ========================================================================= */
+    const SoundEngine = {
+      ctx: null,
+      muted: false,
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+      },
+
+      toggleMute() {
+        this.muted = !this.muted;
+        document.getElementById('soundIcon').textContent = this.muted ? '🔇' : '🔊';
+        UI.showToast(this.muted ? 'Звук выключен' : 'Звук включён', 'info');
+      },
+
+      playTone(freq, type, duration, gainVal = 0.14, slideFreq = null) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        if (slideFreq) {
+          osc.frequency.exponentialRampToValueAtTime(Math.max(20, slideFreq), now + duration);
+        }
+
+        gain.gain.setValueAtTime(gainVal, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      },
+
+      playNeforShot() {
+        this.playTone(540, 'sawtooth', 0.14, 0.11, 220);
+        this.playTone(810, 'triangle', 0.1, 0.07, 400);
+      },
+
+      playGazyavaShot() {
+        this.playTone(320, 'square', 0.12, 0.09, 620);
+        this.playTone(180, 'sine', 0.15, 0.1, 90);
+      },
+
+      playExplosion() {
+        this.playTone(140, 'sawtooth', 0.28, 0.18, 35);
+        this.playTone(90, 'square', 0.25, 0.15, 28);
+      },
+
+      playDash() {
+        this.playTone(260, 'sine', 0.2, 0.14, 780);
+      },
+
+      playShield() {
+        this.playTone(440, 'triangle', 0.12, 0.12, 660);
+        setTimeout(() => this.playTone(660, 'triangle', 0.18, 0.12, 880), 80);
+      },
+
+      playUltSlam() {
+        this.playTone(130, 'sawtooth', 0.45, 0.22, 32);
+        this.playTone(260, 'square', 0.35, 0.15, 55);
+      },
+
+      playUltMentos() {
+        this.playTone(380, 'sawtooth', 0.35, 0.16, 920);
+        setTimeout(() => this.playExplosion(), 90);
+      },
+
+      playHit() {
+        this.playTone(190, 'triangle', 0.1, 0.14, 75);
+      },
+
+      playPickup() {
+        this.playTone(587, 'sine', 0.1, 0.12);
+        setTimeout(() => this.playTone(880, 'sine', 0.16, 0.12), 75);
+      },
+
+      playRoundWin() {
+        [523, 659, 784, 1046].forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 'triangle', 0.22, 0.14), idx * 90);
+        });
+      },
+
+      playRoundLose() {
+        [392, 349, 311, 261].forEach((f, idx) => {
+          setTimeout(() => this.playTone(f, 'sawtooth', 0.24, 0.11), idx * 110);
+        });
+      }
+    };
+    window.SoundEngine = SoundEngine;
+
+    /* =========================================================================
+       2. RANK & PROFILE HELPERS
+       ========================================================================= */
+    function getRankByMmr(mmr) {
+      if (mmr >= 1600) return { title: 'Король арены', color: 'text-amber-300', icon: '👑' };
+      if (mmr >= 1400) return { title: 'Легенда района', color: 'text-purple-300', icon: '🔥' };
+      if (mmr >= 1200) return { title: 'Авторитет', color: 'text-cyan-300', icon: '⚡' };
+      if (mmr >= 1050) return { title: 'Местный', color: 'text-emerald-300', icon: '🛹' };
+      return { title: 'Новичок', color: 'text-slate-300', icon: '🎧' };
+    }
+
+    /* =========================================================================
+       3. FIREBASE SERVICE (Strict Path Rules, Auth-First, Real-time Sync)
+       ========================================================================= */
+    const FirebaseService = {
+      app: null,
+      auth: null,
+      db: null,
+      appId: 'nefory-vs-gazyavy-arena',
+      user: null,
+      ready: false,
+      profile: {
+        nickname: '',
+        mmr: 1000,
+        wins: 0,
+        losses: 0
+      },
+
+      async init() {
+        try {
+          if (typeof __app_id !== 'undefined' && __app_id) {
+            this.appId = __app_id;
+          }
+
+          if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+            this.setConnectionStatus(false, 'Офлайн-режим (доступна разминка с ботом)');
+            this.profile.nickname = 'Игрок_' + Math.floor(100 + Math.random() * 900);
+            UI.updateProfileUI();
+            return;
+          }
+
+          const firebaseConfig = JSON.parse(__firebase_config);
+          this.app = initializeApp(firebaseConfig);
+          this.auth = getAuth(this.app);
+          this.db = getFirestore(this.app);
+
+          // RULE 3: Auth before any Firestore operation
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            await signInWithCustomToken(this.auth, __initial_auth_token);
+          } else {
+            await signInAnonymously(this.auth);
+          }
+
+          this.user = this.auth.currentUser;
+          if (!this.user) throw new Error('Не удалось выполнить вход');
+
+          this.ready = true;
+          this.setConnectionStatus(true, 'Онлайн • Сервер арены активен');
+          await this.loadOrCreateProfile();
+        } catch (err) {
+          console.error('Firebase init error:', err);
+          this.setConnectionStatus(false, 'Ошибка сети • Доступна разминка с ботом');
+          if (!this.profile.nickname) {
+            this.profile.nickname = 'Боец_' + Math.floor(100 + Math.random() * 900);
+          }
+          UI.updateProfileUI();
+        }
+      },
+
+      setConnectionStatus(online, text) {
+        const dot = document.getElementById('connectionDot');
+        const label = document.getElementById('connectionText');
+        if (dot) {
+          dot.className = online
+            ? 'w-2 h-2 rounded-full bg-emerald-400'
+            : 'w-2 h-2 rounded-full bg-rose-400';
+        }
+        if (label) label.textContent = text;
+      },
+
+      // Private Profile Path: /artifacts/{appId}/users/{userId}/profile/data
+      getUserProfileRef() {
+        return doc(this.db, 'artifacts', this.appId, 'users', this.user.uid, 'profile', 'data');
+      },
+
+      // Public Leaderboard Path: /artifacts/{appId}/public/data/leaderboard/{userId}
+      getLeaderboardDocRef(uid = this.user.uid) {
+        return doc(this.db, 'artifacts', this.appId, 'public', 'data', 'leaderboard', uid);
+      },
+
+      async loadOrCreateProfile() {
+        if (!this.ready || !this.user) return;
+        try {
+          const snap = await getDoc(this.getUserProfileRef());
+          if (snap.exists()) {
+            const data = snap.data();
+            this.profile = {
+              nickname: data.nickname || '',
+              mmr: typeof data.mmr === 'number' ? data.mmr : 1000,
+              wins: typeof data.wins === 'number' ? data.wins : 0,
+              losses: typeof data.losses === 'number' ? data.losses : 0
+            };
+          }
+
+          UI.updateProfileUI();
+
+          if (!this.profile.nickname) {
+            UI.openNicknameModal(false);
+          } else {
+            await this.syncPublicLeaderboard();
+          }
+        } catch (err) {
+          console.error('Error loading profile:', err);
+          UI.openNicknameModal(false);
+        }
+      },
+
+      async saveNickname() {
+        const input = document.getElementById('nicknameInput');
+        const raw = (input.value || '').trim();
+        if (raw.length < 2) {
+          UI.showToast('Введи никнейм минимум из 2 символов!', 'error');
+          return;
+        }
+
+        this.profile.nickname = raw.slice(0, 16);
+        UI.updateProfileUI();
+        UI.closeModal('nicknameModal');
+
+        if (this.ready && this.user) {
+          try {
+            await setDoc(this.getUserProfileRef(), {
+              nickname: this.profile.nickname,
+              mmr: this.profile.mmr,
+              wins: this.profile.wins,
+              losses: this.profile.losses,
+              updatedAt: Date.now()
+            }, { merge: true });
+
+            await this.syncPublicLeaderboard();
+            UI.showToast(`Профиль «${this.profile.nickname}» сохранён!`, 'success');
+          } catch (err) {
+            console.error('Save nickname error:', err);
+            UI.showToast('Ник обновлён локально в сессии', 'info');
+          }
+        } else {
+          UI.showToast(`Ник «${this.profile.nickname}» установлен!`, 'success');
+        }
+      },
+
+      async syncPublicLeaderboard() {
+        if (!this.ready || !this.user || !this.profile.nickname) return;
+        try {
+          await setDoc(this.getLeaderboardDocRef(), {
+            uid: this.user.uid,
+            nickname: this.profile.nickname,
+            mmr: this.profile.mmr,
+            wins: this.profile.wins,
+            losses: this.profile.losses,
+            updatedAt: Date.now()
+          }, { merge: true });
+        } catch (err) {
+          console.error('Sync leaderboard error:', err);
+        }
+      },
+
+      async recordRankedResult(isWin) {
+        const delta = isWin ? 25 : -20;
+        this.profile.mmr = Math.max(0, this.profile.mmr + delta);
+        if (isWin) this.profile.wins += 1;
+        else this.profile.losses += 1;
+
+        UI.updateProfileUI();
+
+        if (this.ready && this.user) {
+          try {
+            await setDoc(this.getUserProfileRef(), {
+              nickname: this.profile.nickname,
+              mmr: this.profile.mmr,
+              wins: this.profile.wins,
+              losses: this.profile.losses,
+              updatedAt: Date.now()
+            }, { merge: true });
+
+            await this.syncPublicLeaderboard();
+          } catch (err) {
+            console.error('Failed updating ranked MMR:', err);
+          }
+        }
+        return delta;
+      },
+
+      async fetchTop10Leaderboard() {
+        if (!this.ready || !this.user) {
+          return [{
+            uid: 'local',
+            nickname: this.profile.nickname || 'Вы',
+            mmr: this.profile.mmr,
+            wins: this.profile.wins,
+            losses: this.profile.losses
+          }];
+        }
+
+        // RULE 2: Fetch simple collection() without orderBy/limit, sort in JS memory
+        const colRef = collection(this.db, 'artifacts', this.appId, 'public', 'data', 'leaderboard');
+        const snap = await getDocs(colRef);
+        const list = [];
+        snap.forEach((docSnap) => {
+          const d = docSnap.data();
+          if (d && d.nickname) {
+            list.push({
+              uid: d.uid || docSnap.id,
+              nickname: d.nickname,
+              mmr: typeof d.mmr === 'number' ? d.mmr : 1000,
+              wins: d.wins || 0,
+              losses: d.losses || 0
+            });
+          }
+        });
+
+        list.sort((a, b) => b.mmr - a.mmr);
+        return list.slice(0, 10);
+      }
+    };
+    window.FirebaseService = FirebaseService;
+
+    /* =========================================================================
+       4. MATCHMAKING & ROOMS (Friend 5-char code + Ranked Auto-Match + Bot)
+       ========================================================================= */
+    const Matchmaking = {
+      currentRoomId: null,
+      roomUnsub: null,
+      opponentStateUnsub: null,
+      selectedFaction: 'nefory',
+      botFaction: 'nefory',
+      isHost: false,
+      mode: 'bot', // 'friend' | 'ranked' | 'bot'
+      matchMmrSettled: false,
+
+      generate5CharCode() {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let res = '';
+        for (let i = 0; i < 5; i++) {
+          res += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return res;
+      },
+
+      getRoomDocRef(roomId) {
+        return doc(FirebaseService.db, 'artifacts', FirebaseService.appId, 'public', 'data', 'rooms', roomId);
+      },
+
+      getPlayerStateDocRef(roomId, role) {
+        // role is 'host' or 'guest'
+        return doc(FirebaseService.db, 'artifacts', FirebaseService.appId, 'public', 'data', 'room_states', `${roomId}_${role}`);
+      },
+
+      async createFriendRoom() {
+        if (!FirebaseService.ready || !FirebaseService.user) {
+          UI.showToast('Нет подключения к серверу для онлайн-комнаты', 'error');
+          return;
+        }
+        UI.closeModal('createFriendModal');
+
+        const code = this.generate5CharCode();
+        const hostFaction = this.selectedFaction;
+        const guestFaction = hostFaction === 'nefory' ? 'gazyavy' : 'nefory';
+
+        this.currentRoomId = code;
+        this.isHost = true;
+        this.mode = 'friend';
+        this.matchMmrSettled = false;
+
+        const roomData = {
+          code,
+          mode: 'friend',
+          status: 'waiting',
+          hostUid: FirebaseService.user.uid,
+          guestUid: null,
+          hostFaction,
+          guestFaction,
+          hostNick: FirebaseService.profile.nickname,
+          guestNick: '',
+          hostMmr: FirebaseService.profile.mmr,
+          guestMmr: 1000,
+          round: 1,
+          hostScore: 0,
+          guestScore: 0,
+          roundStartTime: Date.now(),
+          roundWinner: null,
+          matchWinner: null,
+          pickups: [],
+          updatedAt: Date.now()
+        };
+
+        try {
+          await setDoc(this.getRoomDocRef(code), roomData);
+          await this.initPlayerStateDoc(code, 'host', hostFaction);
+
+          UI.showWaitingLobby(roomData, true);
+          this.listenToRoom(code);
+        } catch (err) {
+          console.error('Create friend room error:', err);
+          UI.showToast('Не удалось создать комнату. Попробуй снова.', 'error');
+        }
+      },
+
+      async joinFriendRoom() {
+        if (!FirebaseService.ready || !FirebaseService.user) {
+          UI.showToast('Нет подключения к серверу для онлайн-игры', 'error');
+          return;
+        }
+        const input = document.getElementById('roomCodeInput');
+        const code = (input.value || '').trim().toUpperCase();
+        if (code.length !== 5) {
+          UI.showToast('Код комнаты должен состоять из 5 символов!', 'error');
+          return;
+        }
+
+        try {
+          const roomRef = this.getRoomDocRef(code);
+          const snap = await getDoc(roomRef);
+          if (!snap.exists()) {
+            UI.showToast('Комната с таким кодом не найдена!', 'error');
+            return;
+          }
+
+          const room = snap.data();
+          if (room.status !== 'waiting' || room.guestUid) {
+            UI.showToast('Комната уже заполнена или бой уже идёт!', 'error');
+            return;
+          }
+          if (room.hostUid === FirebaseService.user.uid) {
+            UI.showToast('Нельзя зайти в свою же комнату!', 'error');
+            return;
+          }
+
+          UI.closeModal('joinFriendModal');
+          this.currentRoomId = code;
+          this.isHost = false;
+          this.mode = 'friend';
+          this.matchMmrSettled = false;
+
+          await this.initPlayerStateDoc(code, 'guest', room.guestFaction);
+
+          await updateDoc(roomRef, {
+            guestUid: FirebaseService.user.uid,
+            guestNick: FirebaseService.profile.nickname,
+            guestMmr: FirebaseService.profile.mmr,
+            status: 'playing',
+            round: 1,
+            roundStartTime: Date.now(),
+            updatedAt: Date.now()
+          });
+
+          this.listenToRoom(code);
+        } catch (err) {
+          console.error('Join friend room error:', err);
+          UI.showToast('Ошибка при подключении к комнате', 'error');
+        }
+      },
+
+      async startRanked() {
+        if (!FirebaseService.ready || !FirebaseService.user) {
+          UI.showToast('Для рейтингового матча требуется онлайн-подключение', 'error');
+          return;
+        }
+
+        this.matchMmrSettled = false;
+        this.mode = 'ranked';
+
+        try {
+          // RULE 2: Fetch simple collection() and filter open ranked rooms in JS
+          const roomsCol = collection(FirebaseService.db, 'artifacts', FirebaseService.appId, 'public', 'data', 'rooms');
+          const snap = await getDocs(roomsCol);
+          const now = Date.now();
+          let candidate = null;
+
+          snap.forEach((docSnap) => {
+            const r = docSnap.data();
+            if (
+              r &&
+              r.mode === 'ranked' &&
+              r.status === 'waiting' &&
+              !r.guestUid &&
+              r.hostUid !== FirebaseService.user.uid &&
+              (now - (r.updatedAt || 0) < 90000)
+            ) {
+              candidate = r;
+            }
+          });
+
+          if (candidate) {
+            // Join existing ranked room as Guest
+            this.currentRoomId = candidate.code;
+            this.isHost = false;
+
+            await this.initPlayerStateDoc(candidate.code, 'guest', candidate.guestFaction);
+            await updateDoc(this.getRoomDocRef(candidate.code), {
+              guestUid: FirebaseService.user.uid,
+              guestNick: FirebaseService.profile.nickname,
+              guestMmr: FirebaseService.profile.mmr,
+              status: 'playing',
+              round: 1,
+              roundStartTime: Date.now(),
+              updatedAt: Date.now()
+            });
+
+            this.listenToRoom(candidate.code);
+          } else {
+            // Create new open ranked room as Host
+            const code = 'R' + this.generate5CharCode().slice(0, 4);
+            const hostFaction = Math.random() < 0.5 ? 'nefory' : 'gazyavy';
+            const guestFaction = hostFaction === 'nefory' ? 'gazyavy' : 'nefory';
+
+            this.currentRoomId = code;
+            this.isHost = true;
+
+            const roomData = {
+              code,
+              mode: 'ranked',
+              status: 'waiting',
+              hostUid: FirebaseService.user.uid,
+              guestUid: null,
+              hostFaction,
+              guestFaction,
+              hostNick: FirebaseService.profile.nickname,
+              guestNick: '',
+              hostMmr: FirebaseService.profile.mmr,
+              guestMmr: 1000,
+              round: 1,
+              hostScore: 0,
+              guestScore: 0,
+              roundStartTime: Date.now(),
+              roundWinner: null,
+              matchWinner: null,
+              pickups: [],
+              updatedAt: Date.now()
+            };
+
+            await setDoc(this.getRoomDocRef(code), roomData);
+            await this.initPlayerStateDoc(code, 'host', hostFaction);
+
+            UI.showWaitingLobby(roomData, false);
+            this.listenToRoom(code);
+          }
+        } catch (err) {
+          console.error('Ranked matchmaking error:', err);
+          UI.showToast('Ошибка поиска рейтингового матча', 'error');
+        }
+      },
+
+      async initPlayerStateDoc(roomId, role, faction) {
+        const spawnX = role === 'host' ? 160 : 1040;
+        const spawnY = 360;
+        await setDoc(this.getPlayerStateDocRef(roomId, role), {
+          uid: FirebaseService.user.uid,
+          faction,
+          x: spawnX,
+          y: spawnY,
+          vx: 0,
+          vy: 0,
+          angle: role === 'host' ? 0 : Math.PI,
+          hp: 100,
+          maxHp: 100,
+          shield: 0,
+          ultCharge: 0,
+          invulnUntil: 0,
+          speedBoostUntil: 0,
+          slowUntil: 0,
+          dashAnimUntil: 0,
+          ultAnimUntil: 0,
+          shots: [],
+          hitsDealt: [],
+          updatedAt: Date.now()
+        });
+      },
+
+      listenToRoom(roomId) {
+        this.cleanupListeners();
+
+        const roomRef = this.getRoomDocRef(roomId);
+        // Error callback is mandatory!
+        this.roomUnsub = onSnapshot(roomRef, (snap) => {
+          if (!snap.exists()) {
+            if (GameEngine.running) {
+              UI.showToast('Комната закрыта соперником', 'info');
+              UI.returnToMenuFromMatch();
+            }
+            return;
+          }
+
+          const room = snap.data();
+          GameEngine.onRoomUpdate(room);
+        }, (err) => {
+          console.error('Room snapshot error:', err);
+        });
+
+        const oppRole = this.isHost ? 'guest' : 'host';
+        const oppRef = this.getPlayerStateDocRef(roomId, oppRole);
+        this.opponentStateUnsub = onSnapshot(oppRef, (snap) => {
+          if (snap.exists()) {
+            GameEngine.onOpponentStateUpdate(snap.data());
+          }
+        }, (err) => {
+          console.error('Opponent state snapshot error:', err);
+        });
+      },
+
+      startBotMatch() {
+        UI.closeModal('botModal');
+        this.cleanupListeners();
+        this.currentRoomId = null;
+        this.isHost = true;
+        this.mode = 'bot';
+        this.matchMmrSettled = true;
+
+        const playerFaction = this.botFaction;
+        const botFaction = playerFaction === 'nefory' ? 'gazyavy' : 'nefory';
+
+        const fakeRoom = {
+          code: 'BOT1V1',
+          mode: 'bot',
+          status: 'playing',
+          hostUid: 'local_player',
+          guestUid: 'ai_bot',
+          hostFaction: playerFaction,
+          guestFaction: botFaction,
+          hostNick: FirebaseService.profile.nickname || 'Игрок',
+          guestNick: botFaction === 'nefory' ? 'Бот Нефор_X' : 'Бот Газява_Pro',
+          hostMmr: FirebaseService.profile.mmr,
+          guestMmr: 1000,
+          round: 1,
+          hostScore: 0,
+          guestScore: 0,
+          roundStartTime: Date.now(),
+          roundWinner: null,
+          matchWinner: null,
+          pickups: []
+        };
+
+        GameEngine.startMatch(fakeRoom, true, 'bot');
+      },
+
+      async cancelRoom() {
+        UI.closeModal('waitingModal');
+        const roomId = this.currentRoomId;
+        this.cleanupListeners();
+        this.currentRoomId = null;
+
+        if (roomId && FirebaseService.ready && this.isHost) {
+          try {
+            await deleteDoc(this.getRoomDocRef(roomId));
+          } catch (e) {}
+        }
+      },
+
+      cleanupListeners() {
+        if (this.roomUnsub) {
+          this.roomUnsub();
+          this.roomUnsub = null;
+        }
+        if (this.opponentStateUnsub) {
+          this.opponentStateUnsub();
+          this.opponentStateUnsub = null;
+        }
+      }
+    };
+    window.Matchmaking = Matchmaking;
+
+    /* =========================================================================
+       5. UI CONTROLLER (Modals, Toasts, HUD, Touch Controls)
+       ========================================================================= */
+    const UI = {
+      touchVisible: false,
+
+      showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        const colors = {
+          success: 'border-emerald-400/50 bg-emerald-950/90 text-emerald-100',
+          error: 'border-rose-400/50 bg-rose-950/90 text-rose-100',
+          info: 'border-purple-400/50 bg-slate-900/95 text-slate-100'
+        };
+        el.className = `pointer-events-auto px-4 py-3 rounded-xl border shadow-xl text-xs font-semibold animate-enter ${colors[type] || colors.info}`;
+        el.textContent = message;
+        container.appendChild(el);
+        setTimeout(() => {
+          el.style.opacity = '0';
+          el.style.transition = 'opacity 0.25s';
+          setTimeout(() => el.remove(), 260);
+        }, 3200);
+      },
+
+      updateProfileUI() {
+        const p = FirebaseService.profile;
+        const rank = getRankByMmr(p.mmr);
+        document.getElementById('headerNick').textContent = p.nickname || 'Без имени';
+        const rankEl = document.getElementById('headerRank');
+        rankEl.textContent = `${rank.icon} ${rank.title}`;
+        rankEl.className = `font-semibold ${rank.color}`;
+        document.getElementById('headerMmr').textContent = `${p.mmr} MMR`;
+        document.getElementById('headerWins').textContent = p.wins;
+        document.getElementById('headerLosses').textContent = p.losses;
+
+        const uidEl = document.getElementById('headerUid');
+        if (uidEl) {
+          const fullUid = FirebaseService.user ? FirebaseService.user.uid : 'offline';
+          uidEl.textContent = `ID: ${fullUid}`;
+          uidEl.title = `Полный ID: ${fullUid}`;
+        }
+      },
+
+      openModal(id) {
+        document.getElementById(id).classList.remove('hidden');
+      },
+
+      closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+      },
+
+      openNicknameModal(canCancel) {
+        const input = document.getElementById('nicknameInput');
+        input.value = FirebaseService.profile.nickname || '';
+        const cancelBtn = document.getElementById('cancelNickBtn');
+        if (canCancel) cancelBtn.classList.remove('hidden');
+        else cancelBtn.classList.add('hidden');
+        this.openModal('nicknameModal');
+        setTimeout(() => input.focus(), 50);
+      },
+
+      openCreateFriendModal() {
+        this.selectFaction('nefory');
+        this.openModal('createFriendModal');
+      },
+
+      selectFaction(faction) {
+        Matchmaking.selectedFaction = faction;
+        const nefBtn = document.getElementById('pickNeforyBtn');
+        const gazBtn = document.getElementById('pickGazyavyBtn');
+        if (faction === 'nefory') {
+          nefBtn.className = 'p-4 rounded-xl border-2 border-purple-500 bg-purple-500/20 text-left transition';
+          gazBtn.className = 'p-4 rounded-xl border-2 border-white/10 bg-slate-900/60 text-left transition';
+        } else {
+          gazBtn.className = 'p-4 rounded-xl border-2 border-orange-500 bg-orange-500/20 text-left transition';
+          nefBtn.className = 'p-4 rounded-xl border-2 border-white/10 bg-slate-900/60 text-left transition';
+        }
+      },
+
+      openJoinFriendModal() {
+        document.getElementById('roomCodeInput').value = '';
+        this.openModal('joinFriendModal');
+        setTimeout(() => document.getElementById('roomCodeInput').focus(), 50);
+      },
+
+      openBotModal() {
+        this.selectBotFaction('nefory');
+        this.openModal('botModal');
+      },
+
+      selectBotFaction(faction) {
+        Matchmaking.botFaction = faction;
+        const nefBtn = document.getElementById('botNeforyBtn');
+        const gazBtn = document.getElementById('botGazyavyBtn');
+        if (faction === 'nefory') {
+          nefBtn.className = 'p-4 rounded-xl border-2 border-purple-500 bg-purple-500/20 text-left transition';
+          gazBtn.className = 'p-4 rounded-xl border-2 border-white/10 bg-slate-900/60 text-left transition';
+        } else {
+          gazBtn.className = 'p-4 rounded-xl border-2 border-orange-500 bg-orange-500/20 text-left transition';
+          nefBtn.className = 'p-4 rounded-xl border-2 border-white/10 bg-slate-900/60 text-left transition';
+        }
+      },
+
+      showWaitingLobby(room, isFriendRoom) {
+        document.getElementById('waitingBadge').textContent = isFriendRoom ? 'КОМНАТА ДЛЯ ДРУГА' : 'РЕЙТИНГОВЫЙ ПОИСК';
+        document.getElementById('waitingTitle').textContent = isFriendRoom ? 'ЖДЁМ ПОДКЛЮЧЕНИЯ ДРУГА...' : 'ПОИСК СОПЕРНИКА 1 НА 1...';
+        document.getElementById('waitingSubtitle').textContent = isFriendRoom
+          ? 'Передай этот 5-значный код другу — игра начнётся автоматически!'
+          : 'Подбираем достойного противника по рейтингу MMR...';
+
+        const codeBox = document.getElementById('roomCodeBox');
+        if (isFriendRoom) {
+          codeBox.classList.remove('hidden');
+          document.getElementById('displayRoomCode').textContent = room.code;
+        } else {
+          codeBox.classList.add('hidden');
+        }
+
+        document.getElementById('lobbyHostFaction').textContent = room.hostFaction === 'nefory' ? '🎸 НЕФОРЫ' : '🥤 ГАЗЯВЫ';
+        document.getElementById('lobbyHostNick').textContent = room.hostNick;
+        document.getElementById('lobbyHostMmr').textContent = `${room.hostMmr} MMR`;
+
+        document.getElementById('lobbyGuestFaction').textContent = room.guestFaction === 'nefory' ? '🎸 НЕФОРЫ' : '🥤 ГАЗЯВЫ';
+        document.getElementById('lobbyGuestNick').textContent = 'Ожидание...';
+        document.getElementById('lobbyGuestMmr').textContent = '---';
+
+        this.openModal('waitingModal');
+      },
+
+      copyRoomCode() {
+        const code = document.getElementById('displayRoomCode').textContent;
+        if (!code || code === '-----') return;
+
+        // Mandatory clipboard fallback via temporary textarea + document.execCommand('copy')
+        const tempInput = document.createElement('textarea');
+        tempInput.value = code;
+        tempInput.style.position = 'fixed';
+        tempInput.style.left = '-9999px';
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        try {
+          document.execCommand('copy');
+          this.showToast(`Код ${code} скопирован в буфер обмена!`, 'success');
+        } catch (e) {
+          this.showToast(`Код комнаты: ${code}`, 'info');
+        }
+        document.body.removeChild(tempInput);
+      },
+
+      async openLeaderboardModal() {
+        this.openModal('leaderboardModal');
+        const listEl = document.getElementById('leaderboardList');
+        listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm">Загружаем Топ-10 из базы...</div>';
+
+        try {
+          const top10 = await FirebaseService.fetchTop10Leaderboard();
+          if (!top10.length) {
+            listEl.innerHTML = '<div class="text-center py-8 text-slate-400 text-sm">Пока нет записей в рейтинге. Сыграй первым!</div>';
+            return;
+          }
+
+          const myUid = FirebaseService.user ? FirebaseService.user.uid : '';
+          listEl.innerHTML = top10.map((item, idx) => {
+            const rank = getRankByMmr(item.mmr);
+            const isMe = item.uid === myUid;
+            const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+            return `
+              <div class="flex items-center justify-between p-3 rounded-xl border ${isMe ? 'bg-purple-500/20 border-purple-400/50' : 'bg-white/5 border-white/10'}">
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="font-arcade text-base w-7 text-center ${idx < 3 ? 'text-amber-300' : 'text-slate-400'}">${medal}</span>
+                  <div class="min-w-0">
+                    <div class="font-bold text-sm text-white truncate">
+                      ${this.escapeHtml(item.nickname)} ${isMe ? '<span class="text-[10px] text-purple-300">(Вы)</span>' : ''}
+                    </div>
+                    <div class="text-[11px] ${rank.color}">${rank.icon} ${rank.title} • W:${item.wins} / L:${item.losses}</div>
+                  </div>
+                </div>
+                <div class="font-arcade text-sm sm:text-base text-amber-400 shrink-0 ml-2">${item.mmr} MMR</div>
+              </div>
+            `;
+          }).join('');
+        } catch (err) {
+          console.error('Leaderboard render error:', err);
+          listEl.innerHTML = '<div class="text-center py-8 text-rose-400 text-sm">Ошибка загрузки таблицы лидеров</div>';
+        }
+      },
+
+      escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, (m) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[m]));
+      },
+
+      showRoundBanner(sub, title, durationMs = 1700) {
+        const banner = document.getElementById('roundBanner');
+        document.getElementById('roundBannerSub').textContent = sub;
+        document.getElementById('roundBannerTitle').textContent = title;
+        banner.classList.remove('hidden');
+        clearTimeout(this._bannerTimer);
+        this._bannerTimer = setTimeout(() => {
+          banner.classList.add('hidden');
+        }, durationMs);
+      },
+
+      showMatchEndModal(didWin, hostScore, guestScore, mode, mmrDelta) {
+        document.getElementById('matchEndEmoji').textContent = didWin ? '🏆' : '💀';
+        const titleEl = document.getElementById('matchEndTitle');
+        titleEl.textContent = didWin ? 'ПОБЕДА В МАТЧЕ!' : 'ПОРАЖЕНИЕ';
+        titleEl.className = `font-arcade text-3xl ${didWin ? 'text-emerald-400' : 'text-rose-400'}`;
+        document.getElementById('matchEndSub').textContent = `Счёт по раундам: ${hostScore} : ${guestScore}`;
+
+        const mmrBox = document.getElementById('matchEndMmrBox');
+        if (mode === 'ranked') {
+          mmrBox.classList.remove('hidden');
+          const deltaEl = document.getElementById('matchEndMmrDelta');
+          deltaEl.textContent = mmrDelta >= 0 ? `+${mmrDelta} MMR` : `${mmrDelta} MMR`;
+          deltaEl.className = `font-arcade text-2xl mt-0.5 ${mmrDelta >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+          const r = getRankByMmr(FirebaseService.profile.mmr);
+          document.getElementById('matchEndNewMmr').textContent = `Текущий рейтинг: ${FirebaseService.profile.mmr} MMR (${r.title})`;
+        } else {
+          mmrBox.classList.add('hidden');
+        }
+
+        this.openModal('matchEndModal');
+      },
+
+      returnToMenuFromMatch() {
+        this.closeModal('matchEndModal');
+        this.closeModal('waitingModal');
+        GameEngine.stop();
+        Matchmaking.cleanupListeners();
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('mainMenuScreen').classList.remove('hidden');
+      },
+
+      goHome() {
+        if (GameEngine.running) {
+          GameEngine.confirmLeave();
+        }
+      },
+
+      toggleTouchControls(forceState = null) {
+        this.touchVisible = forceState !== null ? forceState : !this.touchVisible;
+        const el = document.getElementById('touchControls');
+        if (this.touchVisible) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+      }
+    };
+    window.UI = UI;
+
+    /* =========================================================================
+       6. GAME ENGINE (HTML5 Canvas 1v1 Arena, Physics, Factions, AI, Sync)
+       ========================================================================= */
+    const ARENA_W = 1200;
+    const ARENA_H = 720;
+    const PLAYER_RADIUS = 24;
+
+    // Symmetrical tactical street covers
+    const ARENA_OBSTACLES = [
+      { x: 330, y: 170, w: 60, h: 130, label: 'AMP' },
+      { x: 330, y: 420, w: 60, h: 130, label: 'SODA' },
+      { x: 810, y: 170, w: 60, h: 130, label: 'SODA' },
+      { x: 810, y: 420, w: 60, h: 130, label: 'AMP' },
+      { x: 565, y: 245, w: 70, h: 55, label: 'BOX' },
+      { x: 565, y: 420, w: 70, h: 55, label: 'BOX' }
+    ];
+
+    const PICKUP_SPAWNS = [
+      { id: 'p_top', x: 600, y: 120 },
+      { id: 'p_mid', x: 600, y: 360 },
+      { id: 'p_bot', x: 600, y: 600 }
+    ];
+
+    const GameEngine = {
+      canvas: null,
+      ctx: null,
+      running: false,
+      rafId: null,
+      lastTime: 0,
+      room: null,
+      isHost: true,
+      mode: 'bot',
+
+      // Entities
+      me: null,
+      opp: null,
+      projectiles: [],
+      particles: [],
+      floatingTexts: [],
+      pickups: [],
+
+      // Deduplication & network throttling
+      processedShotIds: new Set(),
+      processedHitIds: new Set(),
+      recentShotsBuffer: [],
+      recentHitsBuffer: [],
+      lastSyncSent: 0,
+      lastPickupSpawnCheck: 0,
+      roundTransitionLock: false,
+      screenShake: 0,
+
+      // Input state
+      keys: {},
+      mouse: { x: ARENA_W / 2, y: ARENA_H / 2, down: false, active: false },
+      joystick: { active: false, dx: 0, dy: 0, touchId: null },
+
+      initCanvas() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+        this.bindInputs();
+
+        // Auto-enable touch controls on touch screens
+        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+          UI.toggleTouchControls(true);
+        }
+      },
+
+      resizeCanvas() {
+        if (!this.canvas) return;
+        const wrapper = document.getElementById('arenaWrapper');
+        if (!wrapper) return;
+        const rect = wrapper.getBoundingClientRect();
+        const availW = Math.max(300, rect.width - 8);
+        const availH = Math.max(220, rect.height - 8);
+
+        const scale = Math.min(availW / ARENA_W, availH / ARENA_H);
+        const cssW = Math.floor(ARENA_W * scale);
+        const cssH = Math.floor(ARENA_H * scale);
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        this.canvas.style.width = `${cssW}px`;
+        this.canvas.style.height = `${cssH}px`;
+        this.canvas.width = Math.floor(cssW * dpr);
+        this.canvas.height = Math.floor(cssH * dpr);
+        this.ctx.setTransform((cssW * dpr) / ARENA_W, 0, 0, (cssH * dpr) / ARENA_H, 0, 0);
+      },
+
+      bindInputs() {
+        if (this._inputsBound) return;
+        this._inputsBound = true;
+
+        window.addEventListener('keydown', (e) => {
+          this.keys[e.code] = true;
+          if (!this.running) return;
+          if (e.code === 'Space') {
+            e.preventDefault();
+            this.triggerAttack();
+          } else if (e.code === 'KeyE' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+            e.preventDefault();
+            this.triggerSkill1();
+          } else if (e.code === 'KeyQ') {
+            e.preventDefault();
+            this.triggerUltimate();
+          }
+        });
+
+        window.addEventListener('keyup', (e) => {
+          this.keys[e.code] = false;
+        });
+
+        this.canvas.addEventListener('mousemove', (e) => {
+          const rect = this.canvas.getBoundingClientRect();
+          this.mouse.x = ((e.clientX - rect.left) / rect.width) * ARENA_W;
+          this.mouse.y = ((e.clientY - rect.top) / rect.height) * ARENA_H;
+          this.mouse.active = true;
+        });
+
+        this.canvas.addEventListener('mousedown', (e) => {
+          if (e.button === 0 && this.running) {
+            SoundEngine.init();
+            const rect = this.canvas.getBoundingClientRect();
+            this.mouse.x = ((e.clientX - rect.left) / rect.width) * ARENA_W;
+            this.mouse.y = ((e.clientY - rect.top) / rect.height) * ARENA_H;
+            this.mouse.active = true;
+            this.mouse.down = true;
+            this.triggerAttack();
+          }
+        });
+
+        window.addEventListener('mouseup', () => {
+          this.mouse.down = false;
+        });
+
+        // Virtual Touch Joystick
+        const joyZone = document.getElementById('joystickZone');
+        const joyKnob = document.getElementById('joystickKnob');
+        const maxDist = 38;
+
+        joyZone.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          SoundEngine.init();
+          const t = e.changedTouches[0];
+          this.joystick.active = true;
+          this.joystick.touchId = t.identifier;
+          this.updateJoystickMove(t, joyZone, joyKnob, maxDist);
+        }, { passive: false });
+
+        joyZone.addEventListener('touchmove', (e) => {
+          e.preventDefault();
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            const t = e.changedTouches[i];
+            if (t.identifier === this.joystick.touchId) {
+              this.updateJoystickMove(t, joyZone, joyKnob, maxDist);
+            }
+          }
+        }, { passive: false });
+
+        const endJoystick = (e) => {
+          for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === this.joystick.touchId) {
+              this.joystick.active = false;
+              this.joystick.dx = 0;
+              this.joystick.dy = 0;
+              this.joystick.touchId = null;
+              joyKnob.style.transform = 'translate(0px, 0px)';
+            }
+          }
+        };
+        joyZone.addEventListener('touchend', endJoystick);
+        joyZone.addEventListener('touchcancel', endJoystick);
+
+        // Touch Action Buttons
+        document.getElementById('touchAttackBtn').addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          SoundEngine.init();
+          this.triggerAttack(true);
+        }, { passive: false });
+
+        document.getElementById('touchSkillBtn').addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          SoundEngine.init();
+          this.triggerSkill1();
+        }, { passive: false });
+
+        document.getElementById('touchUltBtn').addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          SoundEngine.init();
+          this.triggerUltimate();
+        }, { passive: false });
+      },
+
+      updateJoystickMove(touch, zone, knob, maxDist) {
+        const rect = zone.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let dx = touch.clientX - cx;
+        let dy = touch.clientY - cy;
+        const dist = Math.hypot(dx, dy);
+        if (dist > maxDist) {
+          dx = (dx / dist) * maxDist;
+          dy = (dy / dist) * maxDist;
+        }
+        knob.style.transform = `translate(${dx}px, ${dy}px)`;
+        this.joystick.dx = dx / maxDist;
+        this.joystick.dy = dy / maxDist;
+      },
+
+      createFighter(role, faction, nick, mmr) {
+        const isLeft = role === 'host';
+        return {
+          role,
+          faction,
+          nick,
+          mmr,
+          x: isLeft ? 160 : 1040,
+          y: 360,
+          targetX: isLeft ? 160 : 1040,
+          targetY: 360,
+          vx: 0,
+          vy: 0,
+          angle: isLeft ? 0 : Math.PI,
+          hp: 100,
+          maxHp: 100,
+          shield: 0,
+          ultCharge: 0, // 0..100
+          attackCooldown: 0,
+          skillCooldown: 0,
+          invulnUntil: 0,
+          speedBoostUntil: 0,
+          slowUntil: 0,
+          dashAnimUntil: 0,
+          ultAnimUntil: 0,
+          dashVx: 0,
+          dashVy: 0
+        };
+      },
+
+      startMatch(room, isHost, mode) {
+        UI.closeModal('waitingModal');
+        UI.closeModal('matchEndModal');
+        document.getElementById('mainMenuScreen').classList.add('hidden');
+        document.getElementById('gameScreen').classList.remove('hidden');
+
+        this.room = room;
+        this.isHost = isHost;
+        this.mode = mode;
+        this.processedShotIds.clear();
+        this.processedHitIds.clear();
+        this.recentShotsBuffer = [];
+        this.recentHitsBuffer = [];
+        this.projectiles = [];
+        this.particles = [];
+        this.floatingTexts = [];
+        this.pickups = room.pickups || [];
+        this.roundTransitionLock = false;
+
+        const hostFighter = this.createFighter('host', room.hostFaction, room.hostNick, room.hostMmr);
+        const guestFighter = this.createFighter('guest', room.guestFaction, room.guestNick, room.guestMmr);
+
+        this.me = isHost ? hostFighter : guestFighter;
+        this.opp = isHost ? guestFighter : hostFighter;
+
+        this.setupAbilityLabels();
+        this.updateHudFromState();
+        this.resizeCanvas();
+
+        UI.showRoundBanner(`РАУНД ${room.round || 1}`, 'В БОЙ!', 1500);
+        SoundEngine.playRoundWin();
+
+        if (!this.running) {
+          this.running = true;
+          this.lastTime = performance.now();
+          this.rafId = requestAnimationFrame((t) => this.loop(t));
+        }
+      },
+
+      stop() {
+        this.running = false;
+        if (this.rafId) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+      },
+
+      confirmLeave() {
+        UI.showToast('Вы покинули матч', 'info');
+        if (this.mode !== 'bot' && Matchmaking.currentRoomId && FirebaseService.ready && this.isHost) {
+          deleteDoc(Matchmaking.getRoomDocRef(Matchmaking.currentRoomId)).catch(() => {});
+        }
+        UI.returnToMenuFromMatch();
+      },
+
+      setupAbilityLabels() {
+        const isNefor = this.me.faction === 'nefory';
+        document.getElementById('barAttackName').textContent = isNefor ? 'Звуковой рифф' : 'Взболтанная банка';
+        document.getElementById('barSkillName').textContent = isNefor ? 'Теневой рывок' : 'Турбо-газировка';
+        document.getElementById('barUltName').textContent = isNefor ? 'Слэм-волна' : 'Взрыв ментоса';
+      },
+
+      resetPositionsForRound(roundNum) {
+        const hostFighter = this.isHost ? this.me : this.opp;
+        const guestFighter = this.isHost ? this.opp : this.me;
+
+        hostFighter.x = 160; hostFighter.y = 360; hostFighter.targetX = 160; hostFighter.targetY = 360;
+        hostFighter.hp = 100; hostFighter.shield = 0; hostFighter.slowUntil = 0; hostFighter.invulnUntil = 0; hostFighter.speedBoostUntil = 0;
+
+        guestFighter.x = 1040; guestFighter.y = 360; guestFighter.targetX = 1040; guestFighter.targetY = 360;
+        guestFighter.hp = 100; guestFighter.shield = 0; guestFighter.slowUntil = 0; guestFighter.invulnUntil = 0; guestFighter.speedBoostUntil = 0;
+
+        this.projectiles = [];
+        this.roundTransitionLock = false;
+        UI.showRoundBanner(`РАУНД ${roundNum}`, 'НОВЫЙ РАУНД!', 1600);
+      },
+
+      /* ---------------- NETWORK SNAPSHOT HANDLERS ---------------- */
+      onRoomUpdate(room) {
+        const prevRoom = this.room;
+        this.room = room;
+
+        if (!this.running && room.status === 'playing' && room.guestUid) {
+          this.startMatch(room, this.isHost, room.mode);
+          return;
+        }
+
+        if (!this.running) return;
+
+        // Sync pickups from host
+        if (!this.isHost && Array.isArray(room.pickups)) {
+          this.pickups = room.pickups;
+        }
+
+        // Check round transitions
+        if (prevRoom && prevRoom.round !== room.round && room.status === 'playing') {
+          this.resetPositionsForRound(room.round);
+        }
+
+        // Check match end
+        if (room.status === 'match_end' && !Matchmaking.matchMmrSettled) {
+          Matchmaking.matchMmrSettled = true;
+          const didIWin = (this.isHost && room.matchWinner === 'host') || (!this.isHost && room.matchWinner === 'guest');
+          if (didIWin) SoundEngine.playRoundWin();
+          else SoundEngine.playRoundLose();
+
+          if (room.mode === 'ranked') {
+            FirebaseService.recordRankedResult(didIWin).then((delta) => {
+              UI.showMatchEndModal(didIWin, room.hostScore, room.guestScore, 'ranked', delta);
+            });
+          } else {
+            UI.showMatchEndModal(didIWin, room.hostScore, room.guestScore, room.mode, 0);
+          }
+        }
+      },
+
+      onOpponentStateUpdate(data) {
+        if (!this.running || !this.opp) return;
+        this.opp.targetX = data.x;
+        this.opp.targetY = data.y;
+        this.opp.vx = data.vx || 0;
+        this.opp.vy = data.vy || 0;
+        this.opp.angle = data.angle || 0;
+        this.opp.hp = typeof data.hp === 'number' ? data.hp : this.opp.hp;
+        this.opp.shield = data.shield || 0;
+        this.opp.invulnUntil = data.invulnUntil || 0;
+        this.opp.speedBoostUntil = data.speedBoostUntil || 0;
+        this.opp.slowUntil = data.slowUntil || 0;
+        this.opp.dashAnimUntil = data.dashAnimUntil || 0;
+        this.opp.ultAnimUntil = data.ultAnimUntil || 0;
+
+        // Spawn opponent's newly fired projectiles
+        if (Array.isArray(data.shots)) {
+          for (const s of data.shots) {
+            if (!this.processedShotIds.has(s.id)) {
+              this.processedShotIds.add(s.id);
+              this.projectiles.push({
+                id: s.id,
+                owner: 'opp',
+                faction: data.faction,
+                type: s.type,
+                x: s.x,
+                y: s.y,
+                vx: s.vx,
+                vy: s.vy,
+                radius: s.type === 'mentos' ? 11 : (s.type === 'can' ? 10 : 9),
+                life: 1.5
+              });
+            }
+          }
+        }
+
+        // Apply hits dealt by opponent to ME
+        if (Array.isArray(data.hitsDealt)) {
+          for (const h of data.hitsDealt) {
+            if (!this.processedHitIds.has(h.id)) {
+              this.processedHitIds.add(h.id);
+              this.applyDamageToMe(h.dmg, h.slow || 0, h.kbX || 0, h.kbY || 0);
+            }
+          }
+        }
+      },
+
+      /* ---------------- COMBAT & ABILITIES ---------------- */
+      getAimAngle(useAutoAim = false) {
+        if (useAutoAim && this.opp) {
+          return Math.atan2(this.opp.y - this.me.y, this.opp.x - this.me.x);
+        }
+        if (this.mouse.active) {
+          return Math.atan2(this.mouse.y - this.me.y, this.mouse.x - this.me.x);
+        }
+        if (this.opp) {
+          return Math.atan2(this.opp.y - this.me.y, this.opp.x - this.me.x);
+        }
+        return this.me.angle;
+      },
+
+      triggerAttack(fromTouch = false) {
+        if (!this.running || !this.me || this.me.hp <= 0 || this.roundTransitionLock) return;
+        if (this.me.attackCooldown > 0) return;
+
+        const angle = this.getAimAngle(fromTouch);
+        this.me.angle = angle;
+
+        if (this.me.faction === 'nefory') {
+          // NEFORY: Звуковой рифф (fast neon projectile)
+          this.me.attackCooldown = 0.34;
+          const speed = 780;
+          const proj = {
+            id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            owner: 'me',
+            faction: 'nefory',
+            type: 'riff',
+            x: this.me.x + Math.cos(angle) * 28,
+            y: this.me.y + Math.sin(angle) * 28,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 9,
+            dmg: 14,
+            life: 1.3
+          };
+          this.projectiles.push(proj);
+          this.recordOutgoingShot(proj);
+          SoundEngine.playNeforShot();
+        } else {
+          // GAZYAVY: Взболтанная банка (explosive soda can)
+          this.me.attackCooldown = 0.44;
+          const speed = 640;
+          const proj = {
+            id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            owner: 'me',
+            faction: 'gazyavy',
+            type: 'can',
+            x: this.me.x + Math.cos(angle) * 28,
+            y: this.me.y + Math.sin(angle) * 28,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: 10,
+            dmg: 17,
+            life: 1.4
+          };
+          this.projectiles.push(proj);
+          this.recordOutgoingShot(proj);
+          SoundEngine.playGazyavaShot();
+        }
+      },
+
+      triggerSkill1() {
+        if (!this.running || !this.me || this.me.hp <= 0 || this.roundTransitionLock) return;
+        if (this.me.skillCooldown > 0) return;
+
+        const now = Date.now();
+        if (this.me.faction === 'nefory') {
+          // NEFORY: Теневой рывок (dash + invulnerability)
+          this.me.skillCooldown = 4.5;
+          this.me.invulnUntil = now + 450;
+          this.me.dashAnimUntil = now + 350;
+
+          let moveAngle = this.me.angle;
+          const ix = (this.keys['KeyD'] || this.keys['ArrowRight'] ? 1 : 0) - (this.keys['KeyA'] || this.keys['ArrowLeft'] ? 1 : 0) + this.joystick.dx;
+          const iy = (this.keys['KeyS'] || this.keys['ArrowDown'] ? 1 : 0) - (this.keys['KeyW'] || this.keys['ArrowUp'] ? 1 : 0) + this.joystick.dy;
+          if (Math.hypot(ix, iy) > 0.15) {
+            moveAngle = Math.atan2(iy, ix);
+          }
+
+          this.me.dashVx = Math.cos(moveAngle) * 950;
+          this.me.dashVy = Math.sin(moveAngle) * 950;
+          this.spawnParticles(this.me.x, this.me.y, '#c084fc', 18);
+          this.addFloatingText(this.me.x, this.me.y - 30, 'ТЕНЕВОЙ РЫВОК!', '#e879f9');
+          SoundEngine.playDash();
+        } else {
+          // GAZYAVY: Турбо-газировка (speed boost + 40 HP shield)
+          this.me.skillCooldown = 6.0;
+          this.me.speedBoostUntil = now + 3500;
+          this.me.shield = 40;
+          this.spawnParticles(this.me.x, this.me.y, '#22d3ee', 20);
+          this.addFloatingText(this.me.x, this.me.y - 30, 'ТУРБО-ЩИТ +40!', '#22d3ee');
+          SoundEngine.playShield();
+        }
+      },
+
+      triggerUltimate() {
+        if (!this.running || !this.me || this.me.hp <= 0 || this.roundTransitionLock) return;
+        if (this.me.ultCharge < 100) {
+          UI.showToast(`Ульта заряжена на ${Math.floor(this.me.ultCharge)}%`, 'info');
+          return;
+        }
+
+        this.me.ultCharge = 0;
+        const now = Date.now();
+        this.me.ultAnimUntil = now + 500;
+        this.screenShake = 14;
+
+        if (this.me.faction === 'nefory') {
+          // NEFORY: Слэм-волна (AOE shockwave + heavy damage + knockback)
+          SoundEngine.playUltSlam();
+          this.spawnParticles(this.me.x, this.me.y, '#ec4899', 40);
+          this.addFloatingText(this.me.x, this.me.y - 35, '🎸 СЛЭМ-ВОЛНА!', '#f472b6');
+
+          if (this.opp && this.opp.hp > 0) {
+            const dx = this.opp.x - this.me.x;
+            const dy = this.opp.y - this.me.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist <= 230) {
+              const ang = Math.atan2(dy, dx);
+              this.registerHitOnOpponent(36, 0, Math.cos(ang) * 450, Math.sin(ang) * 450);
+            }
+          }
+        } else {
+          // GAZYAVY: Взрыв ментоса (5-projectile fan + slow)
+          SoundEngine.playUltMentos();
+          this.spawnParticles(this.me.x, this.me.y, '#fb923c', 32);
+          this.addFloatingText(this.me.x, this.me.y - 35, '🥤 ВЗРЫВ МЕНТОСА!', '#fb923c');
+
+          const baseAngle = this.getAimAngle(this.joystick.active);
+          const spread = [-0.36, -0.18, 0, 0.18, 0.36];
+          for (const offset of spread) {
+            const a = baseAngle + offset;
+            const speed = 720;
+            const proj = {
+              id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+              owner: 'me',
+              faction: 'gazyavy',
+              type: 'mentos',
+              x: this.me.x + Math.cos(a) * 30,
+              y: this.me.y + Math.sin(a) * 30,
+              vx: Math.cos(a) * speed,
+              vy: Math.sin(a) * speed,
+              radius: 11,
+              dmg: 13,
+              slow: 2500,
+              life: 1.35
+            };
+            this.projectiles.push(proj);
+            this.recordOutgoingShot(proj);
+          }
+        }
+      },
+
+      recordOutgoingShot(proj) {
+        this.recentShotsBuffer.push({
+          id: proj.id,
+          type: proj.type,
+          x: Math.round(proj.x),
+          y: Math.round(proj.y),
+          vx: Math.round(proj.vx),
+          vy: Math.round(proj.vy),
+          createdAt: Date.now()
+        });
+        if (this.recentShotsBuffer.length > 10) {
+          this.recentShotsBuffer.shift();
+        }
+      },
+
+      registerHitOnOpponent(dmg, slowMs = 0, kbX = 0, kbY = 0) {
+        if (!this.opp || this.opp.hp <= 0) return;
+        if (Date.now() < (this.opp.invulnUntil || 0)) {
+          this.addFloatingText(this.opp.x, this.opp.y - 25, 'УКЛОНЕНИЕ!', '#c084fc');
+          return;
+        }
+
+        // Charge my ult on dealing damage
+        this.me.ultCharge = Math.min(100, this.me.ultCharge + dmg * 0.85);
+        SoundEngine.playHit();
+        this.spawnParticles(this.opp.x, this.opp.y, '#fbbf24', 14);
+        this.addFloatingText(this.opp.x, this.opp.y - 25, `-${dmg}`, '#f87171');
+
+        if (this.mode === 'bot') {
+          this.applyDamageToFighter(this.opp, dmg, slowMs, kbX, kbY);
+          if (this.opp.hp <= 0) {
+            this.handleRoundWin(this.isHost ? 'host' : 'guest');
+          }
+        } else {
+          // Optimistically preview HP reduction and transmit confirmed hit event
+          this.recentHitsBuffer.push({
+            id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+            dmg,
+            slow: slowMs,
+            kbX: Math.round(kbX),
+            kbY: Math.round(kbY),
+            createdAt: Date.now()
+          });
+          if (this.recentHitsBuffer.length > 10) {
+            this.recentHitsBuffer.shift();
+          }
+        }
+      },
+
+      applyDamageToMe(dmg, slowMs = 0, kbX = 0, kbY = 0) {
+        if (!this.me || this.me.hp <= 0) return;
+        if (Date.now() < (this.me.invulnUntil || 0)) return;
+
+        SoundEngine.playHit();
+        this.screenShake = Math.max(this.screenShake, 6);
+        this.addFloatingText(this.me.x, this.me.y - 25, `-${dmg}`, '#fb7185');
+        this.applyDamageToFighter(this.me, dmg, slowMs, kbX, kbY);
+
+        if (this.me.hp <= 0 && !this.roundTransitionLock) {
+          this.handleRoundWin(this.isHost ? 'guest' : 'host');
+        }
+      },
+
+      applyDamageToFighter(fighter, dmg, slowMs, kbX, kbY) {
+        let remaining = dmg;
+        if (fighter.shield > 0) {
+          const absorbed = Math.min(fighter.shield, remaining);
+          fighter.shield -= absorbed;
+          remaining -= absorbed;
+        }
+        fighter.hp = Math.max(0, fighter.hp - remaining);
+        if (slowMs > 0) {
+          fighter.slowUntil = Math.max(fighter.slowUntil || 0, Date.now() + slowMs);
+        }
+        if (kbX || kbY) {
+          fighter.x = Math.max(40, Math.min(ARENA_W - 40, fighter.x + kbX * 0.22));
+          fighter.y = Math.max(40, Math.min(ARENA_H - 40, fighter.y + kbY * 0.22));
+        }
+      },
+
+      /* ---------------- ROUND & SCORE PROGRESSION ---------------- */
+      async handleRoundWin(winnerRole) {
+        if (this.roundTransitionLock) return;
+        this.roundTransitionLock = true;
+
+        if (this.mode === 'bot') {
+          if (winnerRole === 'host') this.room.hostScore += 1;
+          else this.room.guestScore += 1;
+
+          const didIWinRound = winnerRole === 'host';
+          if (didIWinRound) SoundEngine.playRoundWin();
+          else SoundEngine.playRoundLose();
+
+          if (this.room.hostScore >= 2 || this.room.guestScore >= 2) {
+            const didIWinMatch = this.room.hostScore >= 2;
+            UI.showMatchEndModal(didIWinMatch, this.room.hostScore, this.room.guestScore, 'bot', 0);
+          } else {
+            this.room.round += 1;
+            UI.showRoundBanner(
+              didIWinRound ? 'РАУНД ЗА ТОБОЙ!' : 'БОТ ЗАБРАЛ РАУНД',
+              `СЧЁТ ${this.room.hostScore} : ${this.room.guestScore}`,
+              1800
+            );
+            setTimeout(() => {
+              if (this.running) {
+                this.room.roundStartTime = Date.now();
+                this.resetPositionsForRound(this.room.round);
+              }
+            }, 1900);
+          }
+          return;
+        }
+
+        // Online Match: update room score in Firestore
+        if (!FirebaseService.ready || !Matchmaking.currentRoomId) return;
+        try {
+          const roomRef = Matchmaking.getRoomDocRef(Matchmaking.currentRoomId);
+          const snap = await getDoc(roomRef);
+          if (!snap.exists()) return;
+          const r = snap.data();
+          if (r.status === 'match_end') return;
+
+          const newHostScore = r.hostScore + (winnerRole === 'host' ? 1 : 0);
+          const newGuestScore = r.guestScore + (winnerRole === 'guest' ? 1 : 0);
+
+          if (newHostScore >= 2 || newGuestScore >= 2) {
+            await updateDoc(roomRef, {
+              hostScore: newHostScore,
+              guestScore: newGuestScore,
+              status: 'match_end',
+              matchWinner: newHostScore >= 2 ? 'host' : 'guest',
+              updatedAt: Date.now()
+            });
+          } else {
+            const nextRound = (r.round || 1) + 1;
+            UI.showRoundBanner('РАУНД ЗАВЕРШЁН', `СЧЁТ ${newHostScore} : ${newGuestScore}`, 1600);
+            await updateDoc(roomRef, {
+              hostScore: newHostScore,
+              guestScore: newGuestScore,
+              round: nextRound,
+              roundStartTime: Date.now(),
+              updatedAt: Date.now()
+            });
+          }
+        } catch (err) {
+          console.error('Round transition error:', err);
+        }
+      },
+
+      /* ---------------- MAIN SIMULATION LOOP ---------------- */
+      loop(timestamp) {
+        if (!this.running) return;
+        const dt = Math.min(0.05, (timestamp - this.lastTime) / 1000);
+        this.lastTime = timestamp;
+
+        this.update(dt);
+        this.render();
+
+        this.rafId = requestAnimationFrame((t) => this.loop(t));
+      },
+
+      update(dt) {
+        const now = Date.now();
+
+        // Cooldowns
+        if (this.me.attackCooldown > 0) this.me.attackCooldown = Math.max(0, this.me.attackCooldown - dt);
+        if (this.me.skillCooldown > 0) this.me.skillCooldown = Math.max(0, this.me.skillCooldown - dt);
+        if (this.screenShake > 0) this.screenShake = Math.max(0, this.screenShake - dt * 35);
+
+        // Passive ult trickle (+2.5% per second)
+        if (!this.roundTransitionLock && this.me.hp > 0) {
+          this.me.ultCharge = Math.min(100, this.me.ultCharge + dt * 2.5);
+        }
+
+        // Player Movement
+        if (this.me.hp > 0 && !this.roundTransitionLock) {
+          let moveX = (this.keys['KeyD'] || this.keys['ArrowRight'] ? 1 : 0) - (this.keys['KeyA'] || this.keys['ArrowLeft'] ? 1 : 0);
+          let moveY = (this.keys['KeyS'] || this.keys['ArrowDown'] ? 1 : 0) - (this.keys['KeyW'] || this.keys['ArrowUp'] ? 1 : 0);
+
+          if (this.joystick.active) {
+            moveX += this.joystick.dx;
+            moveY += this.joystick.dy;
+          }
+
+          const mag = Math.hypot(moveX, moveY);
+          if (mag > 1) {
+            moveX /= mag;
+            moveY /= mag;
+          }
+
+          let speed = this.me.faction === 'nefory' ? 310 : 290;
+          if (now < (this.me.speedBoostUntil || 0)) speed *= 1.45;
+          if (now < (this.me.slowUntil || 0)) speed *= 0.55;
+
+          if (now < (this.me.dashAnimUntil || 0)) {
+            this.me.vx = this.me.dashVx;
+            this.me.vy = this.me.dashVy;
+            if (Math.random() < 0.6) {
+              this.spawnParticles(this.me.x, this.me.y, '#a855f7', 2);
+            }
+          } else {
+            this.me.vx = moveX * speed;
+            this.me.vy = moveY * speed;
+          }
+
+          this.me.x += this.me.vx * dt;
+          this.me.y += this.me.vy * dt;
+          this.resolveArenaCollisions(this.me);
+
+          if (this.mouse.active) {
+            this.me.angle = Math.atan2(this.mouse.y - this.me.y, this.mouse.x - this.me.x);
+          } else if (mag > 0.1) {
+            this.me.angle = Math.atan2(moveY, moveX);
+          }
+
+          if (this.mouse.down && this.me.attackCooldown <= 0) {
+            this.triggerAttack();
+          }
+        }
+
+        // Bot AI or Remote Opponent Interpolation
+        if (this.mode === 'bot') {
+          this.updateBotAI(dt, now);
+        } else if (this.opp) {
+          this.opp.x += (this.opp.targetX - this.opp.x) * Math.min(1, dt * 15);
+          this.opp.y += (this.opp.targetY - this.opp.y) * Math.min(1, dt * 15);
+        }
+
+        // Update Projectiles
+        for (let i = this.projectiles.length - 1; i >= 0; i--) {
+          const p = this.projectiles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.life -= dt;
+
+          // Trail particles
+          if (Math.random() < 0.45) {
+            const col = p.faction === 'nefory' ? '#e879f9' : '#fb923c';
+            this.particles.push({
+              x: p.x, y: p.y,
+              vx: (Math.random() - 0.5) * 40,
+              vy: (Math.random() - 0.5) * 40,
+              life: 0.22, maxLife: 0.22,
+              size: 4, color: col
+            });
+          }
+
+          // Arena bounds or cover collision
+          if (p.life <= 0 || p.x < 18 || p.x > ARENA_W - 18 || p.y < 18 || p.y > ARENA_H - 18 || this.projectileHitsObstacle(p)) {
+            if (p.type === 'can' || p.type === 'mentos') {
+              this.spawnParticles(p.x, p.y, '#f97316', 10);
+              if (p.owner === 'me' && p.type === 'can') SoundEngine.playExplosion();
+            }
+            this.projectiles.splice(i, 1);
+            continue;
+          }
+
+          // Hit detection against target
+          const target = p.owner === 'me' ? this.opp : this.me;
+          if (target && target.hp > 0) {
+            const dist = Math.hypot(p.x - target.x, p.y - target.y);
+            if (dist <= p.radius + PLAYER_RADIUS) {
+              if (p.type === 'can') {
+                this.spawnParticles(p.x, p.y, '#fb923c', 16);
+                if (p.owner === 'me') SoundEngine.playExplosion();
+              }
+              if (p.owner === 'me') {
+                this.registerHitOnOpponent(p.dmg || 15, p.slow || 0, p.vx * 0.12, p.vy * 0.12);
+              }
+              this.projectiles.splice(i, 1);
+            }
+          }
+        }
+
+        // Pickups Spawning (Host or Bot mode) & Collection
+        if (this.isHost && now - this.lastPickupSpawnCheck > 9000) {
+          this.lastPickupSpawnCheck = now;
+          if (this.pickups.length < 2) {
+            const freeSpots = PICKUP_SPAWNS.filter(sp => !this.pickups.some(pk => pk.id === sp.id));
+            if (freeSpots.length > 0) {
+              const spot = freeSpots[Math.floor(Math.random() * freeSpots.length)];
+              const type = Math.random() < 0.55 ? 'heal' : 'ult';
+              this.pickups.push({ id: spot.id, x: spot.x, y: spot.y, type });
+              if (this.mode !== 'bot' && FirebaseService.ready && Matchmaking.currentRoomId) {
+                updateDoc(Matchmaking.getRoomDocRef(Matchmaking.currentRoomId), {
+                  pickups: this.pickups
+                }).catch(() => {});
+              }
+            }
+          }
+        }
+
+        for (let i = this.pickups.length - 1; i >= 0; i--) {
+          const pk = this.pickups[i];
+          if (this.me && this.me.hp > 0 && Math.hypot(this.me.x - pk.x, this.me.y - pk.y) < PLAYER_RADIUS + 18) {
+            SoundEngine.playPickup();
+            if (pk.type === 'heal') {
+              this.me.hp = Math.min(this.me.maxHp, this.me.hp + 30);
+              this.addFloatingText(this.me.x, this.me.y - 30, '+30 HP', '#34d399');
+              this.spawnParticles(pk.x, pk.y, '#34d399', 15);
+            } else {
+              this.me.ultCharge = Math.min(100, this.me.ultCharge + 35);
+              this.addFloatingText(this.me.x, this.me.y - 30, '+35% УЛЬТА', '#fbbf24');
+              this.spawnParticles(pk.x, pk.y, '#fbbf24', 15);
+            }
+            this.pickups.splice(i, 1);
+            if (this.mode !== 'bot' && FirebaseService.ready && Matchmaking.currentRoomId) {
+              updateDoc(Matchmaking.getRoomDocRef(Matchmaking.currentRoomId), {
+                pickups: this.pickups
+              }).catch(() => {});
+            }
+          }
+        }
+
+        // Particles & Floating Texts
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+          const pt = this.particles[i];
+          pt.x += pt.vx * dt;
+          pt.y += pt.vy * dt;
+          pt.life -= dt;
+          if (pt.life <= 0) this.particles.splice(i, 1);
+        }
+
+        for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+          const ft = this.floatingTexts[i];
+          ft.y -= 38 * dt;
+          ft.life -= dt;
+          if (ft.life <= 0) this.floatingTexts.splice(i, 1);
+        }
+
+        // Round Timer Check (60s)
+        const elapsed = Math.floor((now - (this.room.roundStartTime || now)) / 1000);
+        const remaining = Math.max(0, 60 - elapsed);
+        if (remaining === 0 && !this.roundTransitionLock && this.isHost) {
+          const hostHp = this.isHost ? this.me.hp : this.opp.hp;
+          const guestHp = this.isHost ? this.opp.hp : this.me.hp;
+          this.handleRoundWin(hostHp >= guestHp ? 'host' : 'guest');
+        }
+
+        // Sync my state to Firestore at ~12 Hz
+        if (this.mode !== 'bot' && FirebaseService.ready && Matchmaking.currentRoomId && now - this.lastSyncSent > 80) {
+          this.lastSyncSent = now;
+          const myRole = this.isHost ? 'host' : 'guest';
+          setDoc(Matchmaking.getPlayerStateDocRef(Matchmaking.currentRoomId, myRole), {
+            uid: FirebaseService.user.uid,
+            faction: this.me.faction,
+            x: Math.round(this.me.x),
+            y: Math.round(this.me.y),
+            vx: Math.round(this.me.vx),
+            vy: Math.round(this.me.vy),
+            angle: Number(this.me.angle.toFixed(2)),
+            hp: Math.round(this.me.hp),
+            maxHp: 100,
+            shield: Math.round(this.me.shield),
+            ultCharge: Math.round(this.me.ultCharge),
+            invulnUntil: this.me.invulnUntil || 0,
+            speedBoostUntil: this.me.speedBoostUntil || 0,
+            slowUntil: this.me.slowUntil || 0,
+            dashAnimUntil: this.me.dashAnimUntil || 0,
+            ultAnimUntil: this.me.ultAnimUntil || 0,
+            shots: this.recentShotsBuffer,
+            hitsDealt: this.recentHitsBuffer,
+            updatedAt: now
+          }).catch(() => {});
+        }
+
+        this.updateHudFromState(remaining);
+      },
+
+      updateBotAI(dt, now) {
+        if (!this.opp || this.opp.hp <= 0 || this.roundTransitionLock) return;
+        if (this.opp.attackCooldown > 0) this.opp.attackCooldown = Math.max(0, this.opp.attackCooldown - dt);
+        if (this.opp.skillCooldown > 0) this.opp.skillCooldown = Math.max(0, this.opp.skillCooldown - dt);
+        this.opp.ultCharge = Math.min(100, this.opp.ultCharge + dt * 5);
+
+        const dx = this.me.x - this.opp.x;
+        const dy = this.me.y - this.opp.y;
+        const dist = Math.hypot(dx, dy);
+        const angleToMe = Math.atan2(dy, dx);
+        this.opp.angle = angleToMe;
+
+        // Strafe + maintain tactical distance
+        const strafeDir = Math.sin(now / 650) > 0 ? 1 : -1;
+        let desiredVx = Math.cos(angleToMe + Math.PI / 2 * strafeDir) * 190;
+        let desiredVy = Math.sin(angleToMe + Math.PI / 2 * strafeDir) * 190;
+
+        if (dist > 340) {
+          desiredVx += Math.cos(angleToMe) * 160;
+          desiredVy += Math.sin(angleToMe) * 160;
+        } else if (dist < 180) {
+          desiredVx -= Math.cos(angleToMe) * 150;
+          desiredVy -= Math.sin(angleToMe) * 150;
+        }
+
+        let speedMult = 1;
+        if (now < (this.opp.speedBoostUntil || 0)) speedMult *= 1.4;
+        if (now < (this.opp.slowUntil || 0)) speedMult *= 0.55;
+
+        this.opp.x += desiredVx * speedMult * dt;
+        this.opp.y += desiredVy * speedMult * dt;
+        this.resolveArenaCollisions(this.opp);
+
+        // Bot Skill 1
+        if (this.opp.skillCooldown <= 0 && (this.opp.hp < 75 || dist < 220)) {
+          if (this.opp.faction === 'nefory') {
+            this.opp.skillCooldown = 5.5;
+            this.opp.invulnUntil = now + 450;
+            this.opp.dashAnimUntil = now + 350;
+            this.opp.x += Math.cos(angleToMe + Math.PI / 2) * 95;
+            this.opp.y += Math.sin(angleToMe + Math.PI / 2) * 95;
+            this.resolveArenaCollisions(this.opp);
+            this.spawnParticles(this.opp.x, this.opp.y, '#c084fc', 14);
+          } else {
+            this.opp.skillCooldown = 6.5;
+            this.opp.speedBoostUntil = now + 3200;
+            this.opp.shield = 40;
+            this.spawnParticles(this.opp.x, this.opp.y, '#22d3ee', 14);
+          }
+        }
+
+        // Bot Ultimate
+        if (this.opp.ultCharge >= 100 && dist < 350) {
+          this.opp.ultCharge = 0;
+          this.opp.ultAnimUntil = now + 450;
+          if (this.opp.faction === 'nefory' && dist <= 220) {
+            this.spawnParticles(this.opp.x, this.opp.y, '#ec4899', 30);
+            this.applyDamageToMe(30, 0, Math.cos(angleToMe) * 380, Math.sin(angleToMe) * 380);
+          } else if (this.opp.faction === 'gazyavy') {
+            for (const off of [-0.3, 0, 0.3]) {
+              const a = angleToMe + off;
+              this.projectiles.push({
+                id: `bot_ult_${now}_${off}`,
+                owner: 'opp',
+                faction: 'gazyavy',
+                type: 'mentos',
+                x: this.opp.x + Math.cos(a) * 28,
+                y: this.opp.y + Math.sin(a) * 28,
+                vx: Math.cos(a) * 650,
+                vy: Math.sin(a) * 650,
+                radius: 10,
+                dmg: 11,
+                slow: 2000,
+                life: 1.3
+              });
+            }
+          }
+        }
+
+        // Bot Basic Attack
+        if (this.opp.attackCooldown <= 0) {
+          this.opp.attackCooldown = 0.62;
+          const jitter = (Math.random() - 0.5) * 0.14;
+          const a = angleToMe + jitter;
+          const spd = this.opp.faction === 'nefory' ? 720 : 600;
+          this.projectiles.push({
+            id: `bot_${now}_${Math.random()}`,
+            owner: 'opp',
+            faction: this.opp.faction,
+            type: this.opp.faction === 'nefory' ? 'riff' : 'can',
+            x: this.opp.x + Math.cos(a) * 28,
+            y: this.opp.y + Math.sin(a) * 28,
+            vx: Math.cos(a) * spd,
+            vy: Math.sin(a) * spd,
+            radius: 9,
+            dmg: this.opp.faction === 'nefory' ? 12 : 14,
+            life: 1.35
+          });
+        }
+      },
+
+      resolveArenaCollisions(fighter) {
+        // Outer arena walls
+        fighter.x = Math.max(PLAYER_RADIUS + 16, Math.min(ARENA_W - PLAYER_RADIUS - 16, fighter.x));
+        fighter.y = Math.max(PLAYER_RADIUS + 16, Math.min(ARENA_H - PLAYER_RADIUS - 16, fighter.y));
+
+        // Obstacles (Circle vs AABB)
+        for (const obs of ARENA_OBSTACLES) {
+          const closestX = Math.max(obs.x, Math.min(fighter.x, obs.x + obs.w));
+          const closestY = Math.max(obs.y, Math.min(fighter.y, obs.y + obs.h));
+          const dx = fighter.x - closestX;
+          const dy = fighter.y - closestY;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < PLAYER_RADIUS * PLAYER_RADIUS) {
+            const dist = Math.sqrt(distSq) || 0.001;
+            const overlap = PLAYER_RADIUS - dist;
+            fighter.x += (dx / dist) * overlap;
+            fighter.y += (dy / dist) * overlap;
+          }
+        }
+      },
+
+      projectileHitsObstacle(proj) {
+        for (const obs of ARENA_OBSTACLES) {
+          if (
+            proj.x + proj.radius > obs.x &&
+            proj.x - proj.radius < obs.x + obs.w &&
+            proj.y + proj.radius > obs.y &&
+            proj.y - proj.radius < obs.y + obs.h
+          ) {
+            return true;
+          }
+        }
+        return false;
+      },
+
+      spawnParticles(x, y, color, count = 12) {
+        for (let i = 0; i < count; i++) {
+          const ang = Math.random() * Math.PI * 2;
+          const spd = 60 + Math.random() * 220;
+          this.particles.push({
+            x, y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            life: 0.35 + Math.random() * 0.25,
+            maxLife: 0.6,
+            size: 3 + Math.random() * 4,
+            color
+          });
+        }
+      },
+
+      addFloatingText(x, y, text, color) {
+        this.floatingTexts.push({ x, y, text, color, life: 0.9 });
+      },
+
+      updateHudFromState(remainingSec = 60) {
+        if (!this.room || !this.me || !this.opp) return;
+        const p1 = this.isHost ? this.me : this.opp;
+        const p2 = this.isHost ? this.opp : this.me;
+
+        // P1 (Host)
+        document.getElementById('hudP1Nick').textContent = p1.nick;
+        document.getElementById('hudP1Mmr').textContent = `(${p1.mmr})`;
+        const p1Badge = document.getElementById('hudP1Badge');
+        p1Badge.textContent = p1.faction === 'nefory' ? 'НЕФОРЫ' : 'ГАЗЯВЫ';
+        p1Badge.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase text-white ${p1.faction === 'nefory' ? 'bg-purple-600' : 'bg-orange-600'}`;
+        document.getElementById('hudP1HpBar').style.width = `${Math.max(0, p1.hp)}%`;
+        document.getElementById('hudP1ShieldBar').style.width = `${Math.min(100, (p1.shield / 40) * 35)}%`;
+        document.getElementById('hudP1HpText').textContent = `${Math.ceil(p1.hp)}${p1.shield > 0 ? ` (+${Math.ceil(p1.shield)})` : ''} / 100`;
+
+        // P2 (Guest)
+        document.getElementById('hudP2Nick').textContent = p2.nick;
+        document.getElementById('hudP2Mmr').textContent = `(${p2.mmr})`;
+        const p2Badge = document.getElementById('hudP2Badge');
+        p2Badge.textContent = p2.faction === 'nefory' ? 'НЕФОРЫ' : 'ГАЗЯВЫ';
+        p2Badge.className = `px-2 py-0.5 rounded text-[10px] font-bold uppercase text-white ${p2.faction === 'nefory' ? 'bg-purple-600' : 'bg-orange-600'}`;
+        document.getElementById('hudP2HpBar').style.width = `${Math.max(0, p2.hp)}%`;
+        document.getElementById('hudP2ShieldBar').style.width = `${Math.min(100, (p2.shield / 40) * 35)}%`;
+        document.getElementById('hudP2HpText').textContent = `${Math.ceil(p2.hp)}${p2.shield > 0 ? ` (+${Math.ceil(p2.shield)})` : ''} / 100`;
+
+        // Scores & Timer
+        document.getElementById('hudP1Score').textContent = this.room.hostScore || 0;
+        document.getElementById('hudP2Score').textContent = this.room.guestScore || 0;
+        document.getElementById('hudTimer').textContent = remainingSec;
+        document.getElementById('hudRoundLabel').textContent = `Раунд ${this.room.round || 1} • До 2 побед`;
+
+        // Bottom Cooldown Bars & Touch Buttons
+        const skillStatus = document.getElementById('barSkillStatus');
+        const touchSkillCd = document.getElementById('touchSkillCd');
+        if (this.me.skillCooldown > 0) {
+          const cdText = `${this.me.skillCooldown.toFixed(1)}с`;
+          skillStatus.textContent = cdText;
+          skillStatus.className = 'text-[10px] text-slate-400 font-bold';
+          if (touchSkillCd) touchSkillCd.textContent = cdText;
+        } else {
+          skillStatus.textContent = 'ГОТОВО';
+          skillStatus.className = 'text-[10px] text-emerald-400 font-bold';
+          if (touchSkillCd) touchSkillCd.textContent = 'E';
+        }
+
+        const ultPct = Math.floor(this.me.ultCharge);
+        document.getElementById('barUltFill').style.width = `${ultPct}%`;
+        const touchUltPct = document.getElementById('touchUltPct');
+        if (touchUltPct) touchUltPct.textContent = ultPct >= 100 ? 'УЛЬТА!' : `${ultPct}%`;
+      },
+
+      /* ---------------- CANVAS RENDERING ---------------- */
+      render() {
+        const ctx = this.ctx;
+        ctx.save();
+
+        // Screen shake
+        if (this.screenShake > 0) {
+          const sx = (Math.random() - 0.5) * this.screenShake;
+          const sy = (Math.random() - 0.5) * this.screenShake;
+          ctx.translate(sx, sy);
+        }
+
+        // 1. Street Asphalt Background
+        ctx.fillStyle = '#0c0c16';
+        ctx.fillRect(0, 0, ARENA_W, ARENA_H);
+
+        // Neon Grid Lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+        ctx.lineWidth = 1;
+        const gridSize = 60;
+        for (let x = 0; x <= ARENA_W; x += gridSize) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ARENA_H); ctx.stroke();
+        }
+        for (let y = 0; y <= ARENA_H; y += gridSize) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ARENA_W, y); ctx.stroke();
+        }
+
+        // Center Divider & Street Circle
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.16)';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([14, 14]);
+        ctx.beginPath();
+        ctx.moveTo(ARENA_W / 2, 20);
+        ctx.lineTo(ARENA_W / 2, ARENA_H - 20);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.beginPath();
+        ctx.arc(ARENA_W / 2, ARENA_H / 2, 110, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(249, 115, 22, 0.18)';
+        ctx.stroke();
+
+        // Arena Perimeter Neon Border
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(8, 8, ARENA_W - 16, ARENA_H - 16);
+
+        // 2. Arena Covers / Obstacles
+        for (const obs of ARENA_OBSTACLES) {
+          const isAmp = obs.label === 'AMP';
+          const isSoda = obs.label === 'SODA';
+          const borderCol = isAmp ? '#a855f7' : (isSoda ? '#f97316' : '#38bdf8');
+
+          ctx.fillStyle = '#161626';
+          ctx.beginPath();
+          ctx.roundRect(obs.x, obs.y, obs.w, obs.h, 12);
+          ctx.fill();
+
+          ctx.strokeStyle = borderCol;
+          ctx.lineWidth = 2.5;
+          ctx.stroke();
+
+          // Decorative inner detail
+          ctx.fillStyle = 'rgba(255,255,255,0.06)';
+          ctx.fillRect(obs.x + 8, obs.y + 8, obs.w - 16, obs.h - 16);
+        }
+
+        // 3. Pickups (HP Energy Drink / Ult Cassette)
+        const now = Date.now();
+        for (const pk of this.pickups) {
+          const pulse = Math.sin(now / 180) * 3;
+          ctx.save();
+          ctx.translate(pk.x, pk.y);
+          ctx.beginPath();
+          ctx.arc(0, 0, 18 + pulse, 0, Math.PI * 2);
+          ctx.fillStyle = pk.type === 'heal' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(0, 0, 13, 0, Math.PI * 2);
+          ctx.fillStyle = pk.type === 'heal' ? '#10b981' : '#f59e0b';
+          ctx.fill();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 14px Inter';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(pk.type === 'heal' ? '+' : '⚡', 0, 1);
+          ctx.restore();
+        }
+
+        // 4. Fighters
+        if (this.opp) this.drawFighter(ctx, this.opp, false, now);
+        if (this.me) this.drawFighter(ctx, this.me, true, now);
+
+        // 5. Projectiles
+        for (const p of this.projectiles) {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          const ang = Math.atan2(p.vy, p.vx);
+          ctx.rotate(ang);
+
+          if (p.faction === 'nefory') {
+            // Neon Sonic Riff Crescent
+            ctx.strokeStyle = '#e879f9';
+            ctx.lineWidth = 4;
+            ctx.shadowColor = '#a855f7';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.arc(-4, 0, 11, -0.9, 0.9);
+            ctx.stroke();
+          } else {
+            // Fizzy Soda Can / Mentos Jet
+            ctx.fillStyle = p.type === 'mentos' ? '#22d3ee' : '#f97316';
+            ctx.shadowColor = p.type === 'mentos' ? '#06b6d4' : '#f97316';
+            ctx.shadowBlur = 12;
+            ctx.beginPath();
+            ctx.roundRect(-9, -6, 18, 12, 4);
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(-3, -6, 4, 12);
+          }
+          ctx.restore();
+        }
+
+        // 6. Particles
+        for (const pt of this.particles) {
+          ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+          ctx.fillStyle = pt.color;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // 7. Floating Combat Numbers
+        for (const ft of this.floatingTexts) {
+          ctx.globalAlpha = Math.min(1, ft.life * 1.4);
+          ctx.font = 'bold 16px Russo One, Inter, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#000000';
+          ctx.fillText(ft.text, ft.x + 1.5, ft.y + 1.5);
+          ctx.fillStyle = ft.color;
+          ctx.fillText(ft.text, ft.x, ft.y);
+        }
+        ctx.globalAlpha = 1;
+
+        ctx.restore();
+      },
+
+      drawFighter(ctx, f, isMe, now) {
+        if (f.hp <= 0) return;
+        const isNefor = f.faction === 'nefory';
+        const mainColor = isNefor ? '#a855f7' : '#f97316';
+        const accentColor = isNefor ? '#ec4899' : '#06b6d4';
+
+        ctx.save();
+        ctx.translate(f.x, f.y);
+
+        // Slam Wave Ult Ring Animation
+        if (now < (f.ultAnimUntil || 0) && isNefor) {
+          const progress = 1 - ((f.ultAnimUntil - now) / 500);
+          ctx.beginPath();
+          ctx.arc(0, 0, 40 + progress * 190, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(236, 72, 153, ${1 - progress})`;
+          ctx.lineWidth = 8;
+          ctx.stroke();
+        }
+
+        // Invulnerability / Shadow Ghost Alpha
+        if (now < (f.invulnUntil || 0)) {
+          ctx.globalAlpha = 0.48;
+        }
+
+        // Ground Aura Ring
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_RADIUS + 6, 0, Math.PI * 2);
+        ctx.strokeStyle = isMe ? 'rgba(255,255,255,0.35)' : 'rgba(255,255,255,0.12)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Aim Direction Pointer
+        ctx.save();
+        ctx.rotate(f.angle);
+        ctx.fillStyle = accentColor;
+        ctx.beginPath();
+        ctx.moveTo(PLAYER_RADIUS + 14, 0);
+        ctx.lineTo(PLAYER_RADIUS + 4, -6);
+        ctx.lineTo(PLAYER_RADIUS + 4, 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+
+        // Character Body
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2);
+        ctx.fillStyle = mainColor;
+        ctx.shadowColor = mainColor;
+        ctx.shadowBlur = 15;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Faction Stylized Avatar Details
+        if (isNefor) {
+          // Spiky cyber-grunge hair & neon visor
+          ctx.fillStyle = '#1e1b4b';
+          ctx.beginPath();
+          ctx.moveTo(-18, -6);
+          ctx.lineTo(-10, -24);
+          ctx.lineTo(0, -16);
+          ctx.lineTo(10, -25);
+          ctx.lineTo(18, -6);
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = '#f472b6';
+          ctx.fillRect(-11, -4, 22, 6);
+        } else {
+          // Street cap & fizzy soda goggles
+          ctx.fillStyle = '#0891b2';
+          ctx.beginPath();
+          ctx.arc(0, -6, 17, Math.PI, 0);
+          ctx.fill();
+          ctx.fillRect(0, -10, 22, 5);
+
+          ctx.fillStyle = '#fef08a';
+          ctx.fillRect(-10, -2, 20, 6);
+        }
+
+        // Protective Shield Bubble (Gazyavy Skill 1)
+        if (f.shield > 0) {
+          ctx.beginPath();
+          ctx.arc(0, 0, PLAYER_RADIUS + 11, 0, Math.PI * 2);
+          ctx.strokeStyle = '#22d3ee';
+          ctx.lineWidth = 3.5;
+          ctx.setLineDash([8, 5]);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Slowed Indicator
+        if (now < (f.slowUntil || 0)) {
+          ctx.beginPath();
+          ctx.arc(0, 0, PLAYER_RADIUS + 8, 0, Math.PI * 2);
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+
+        ctx.globalAlpha = 1;
+
+        // Overhead Nickname + Mini HP Bar
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(f.nick, 0, -PLAYER_RADIUS - 18);
+
+        const barW = 54;
+        const barH = 5;
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(-barW / 2, -PLAYER_RADIUS - 13, barW, barH);
+        ctx.fillStyle = isNefor ? '#d946ef' : '#fb923c';
+        ctx.fillRect(-barW / 2, -PLAYER_RADIUS - 13, barW * (Math.max(0, f.hp) / 100), barH);
+
+        ctx.restore();
+      }
+    };
+    window.GameEngine = GameEngine;
+
+    /* =========================================================================
+       7. BOOTSTRAP APPLICATION ON LOAD
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      GameEngine.initCanvas();
+      FirebaseService.init();
+    });
+  </script>
+</body>
+</html>
